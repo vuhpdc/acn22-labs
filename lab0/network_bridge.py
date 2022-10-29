@@ -1,4 +1,4 @@
-# This code is part of the Advanced Computer Networks (ACN) course at VU 
+ # This code is part of the Advanced Computer Networks (ACN) course at VU 
 # Amsterdam.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -11,7 +11,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-#!/usr/bin/python
+#!/usr/bin/env python3
+
 
 from mininet.topo import Topo
 from mininet.link import TCLink
