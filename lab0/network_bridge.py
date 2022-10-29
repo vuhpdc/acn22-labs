@@ -1,5 +1,3 @@
-# Copyright 2021 Lin Wang
-#
 # This code is part of the Advanced Computer Networks (ACN) course at VU 
 # Amsterdam.
 #
