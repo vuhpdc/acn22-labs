@@ -1,0 +1,95 @@
+\documentclass[a4paper,11pt]{article} 
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{multirow} 
+\usepackage{booktabs} 
+\usepackage{graphicx} 
+\usepackage{setspace}
+\usepackage[skip=6pt plus1pt, indent=0pt]{parskip}
+
+\usepackage{float}
+\usepackage{fancyhdr}
+
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue
+}
+
+\usepackage[margin=1in]{geometry}
+
+\newcommand{\incode}[1]{
+\begin{tcolorbox}[colback=blue!5!white, boxrule=0mm, sharp corners]
+\texttt{#1}
+\end{tcolorbox}
+}
+
+\newcommand{\note}[1]{\textit{\textcolor{gray}{#1}}}
+
+\pagestyle{fancy} 
+\fancyhf{} 
+\lhead{Advanced Computer Networks 2022}
+\rhead{Lin Wang, George Karlos, Florian Gerlinghoff} 
+\cfoot{\thepage} 
+
+\begin{document}
+
+
+\thispagestyle{empty} 
+
+\begin{tabular}{@{}p{15.5cm}} 
+{\bf Advanced Computer Networks 2022} \\
+Vrije Universiteit Amsterdam  \\ Lin Wang, George Karlos, Florian Gerlinghoff\\
+\hline 
+\\
+\end{tabular} 
+
+\vspace*{0.3cm} 
+
+{\LARGE \bf Lab2: Data Center Network Topology (Report)} 
+
+\vspace*{0.3cm} 
+
+%============== Please do not change anything above ==============%
+
+% Please modify this part with your group information
+\begin{tcolorbox}[sharp corners, colback=blue!5!white]
+\begin{tabular}{@{}ll}
+\textbf{Group number:} & <your group number on Canvas> \\
+\textbf{Group members:} & <names of group members> \\
+\textbf{Slip days used:} & <number of slip days used> \\
+\textbf{Bonus claim:} & <yes or no>
+\end{tabular}
+\end{tcolorbox}
+
+\vspace{0.4cm}
+
+% Please do not remove any of the section headings below
+
+\section{Generating Fat-tree and Jellyfish Topologies}
+
+% Start your writing here, feel free to include subsections to structure your report if needed
+% Please remove the note below in your submission
+\note{Please include at least the following: (1) how we should run your code, (2) your general approach to generating the topologies, and (3) some small-scale example topologies (e.g., plotted with matplotlib) you have generated.}
+
+\section{Comparing the Properties of Fat-tree and Jellyfish}
+
+% Start your writing here, feel free to include subsections to structure your report if needed
+% Please remove the note below in your submission
+\note{Please include at least the following: (1) how we should run your code, (2) your general approach to reproducing the figure, (3) the figure you have reproduced, and (4) explanation for the comparison (e.g., reason about any differences to the original figures in the paper, if any).}
+
+
+\section{Bonus}
+% Start your writing here for the bonus part
+% Please remove this section if you are not attempting the bonus
+
+\note{Please include at least the following: (1) your general approach to generating the topologies, (2) the figures you have produced, and (3) explanation for the results (e.g., what you have observed and why).}
+
+
+
+\end{document}
