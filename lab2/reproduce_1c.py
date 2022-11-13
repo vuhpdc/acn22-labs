@@ -14,13 +14,115 @@
 # under the License.
 
 import topo
+import sys
+import matplotlib.pyplot as plt
 
+
+class Graph:
+    def __init__(self,servers,switches):
+        servers.extend(switches)
+        self.entities = servers
+        self.graph = {}
+        for i in self.entities:
+            self.graph[i.id] = {}
+            for j in self.entities:
+                self.graph[i.id][j.id] = 0
+    
+    def identify_neighbours(self):
+        for i in self.entities:
+            for j in i.edges:
+                if i.id != j.lnode.id :
+                    self.graph[i.id][j.lnode.id] = 1
+                else:
+                    self.graph[i.id][j.rnode.id] = 1
+    
+    def find_min_distance(self):
+        self.identify_neighbours()
+        all_distance = {}
+        for i in self.entities:
+            dist = self.dijkstra(i)
+            all_distance[i.id] = dist
+        return all_distance
+
+    def min_distance(self,dist,sptSet):
+        min = sys.maxsize
+        min_index = 0
+
+        for u in self.entities:
+            if dist[u.id] < min and sptSet[u.id] == False:
+                min = dist[u.id]
+                min_index = u.id
+
+        return min_index
+
+    def dijkstra(self, src):
+        dist = {i.id:sys.maxsize for i in self.entities}
+        dist[src.id] = 0
+        sptSet = {i.id:False for i in self.entities}
+
+        for i in self.entities:
+            x = self.min_distance(dist, sptSet)
+            sptSet[x] = True
+            for y in self.entities:
+                if self.graph[x][y.id] > 0 and sptSet[y.id] == False and dist[y.id] > dist[x] + self.graph[x][y.id]:
+                    dist[y.id] = dist[x] + self.graph[x][y.id]
+
+        return dist
+
+
+def gen_server_pairs(servers):
+    server_pairs = {}
+    for i in range(len(servers)):
+        for j in range(i+1,len(servers)):
+            server_pairs[(servers[i].id,servers[j].id)] = -1
+    return server_pairs
+
+def frequency(server_pairs, all_distance):
+    histogram={}
+    total = 0
+    for i in server_pairs:
+        total += 1
+        server_pairs[i] = all_distance[i[0]][i[1]]
+        try:
+            histogram[str(all_distance[i[0]][i[1]])] += 1
+        except:
+            histogram[str(all_distance[i[0]][i[1]])] = 1
+    
+    for i in histogram:
+        histogram[i] /= total
+
+    return histogram
+        
 # Same setup for Jellyfish and Fattree
 num_servers = 686
 num_switches = 245
 num_ports = 14
+'''
+num_servers = 6
+num_switches = 3
+num_ports = 4
+'''
+
+
 
 ft_topo = topo.Fattree(num_ports)
 jf_topo = topo.Jellyfish(num_servers, num_switches, num_ports)
 
 # TODO: code for reproducing Figure 1(c) in the jellyfish paper
+#For JellyFish
+server_pairs = gen_server_pairs(jf_topo.servers)
+g1 = Graph(jf_topo.servers, jf_topo.switches)
+all_distance = g1.find_min_distance()
+jelly_histo = frequency(server_pairs, all_distance)
+plt.bar(*zip(*jelly_histo.items()))
+
+#For fat tree
+server_pairs = gen_server_pairs(ft_topo.servers)
+g2 = Graph(ft_topo.servers,ft_topo.switches)
+all_distance = g2.find_min_distance()
+fat_histo = frequency(server_pairs, all_distance)
+plt.bar(*zip(*fat_histo.items()))
+
+plt.show()
+
+
