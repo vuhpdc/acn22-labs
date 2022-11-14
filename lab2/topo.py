@@ -308,7 +308,7 @@ class Fattree:
             # pod_aggregate_switches.append(aggregate_switch.data)
             pod_aggregate_switches.append(aggregate_switch)
             self.switches.append(aggregate_switch)
-        self.aggregate_switches.append([pod_aggregate_switches])
+        self.aggregate_switches.append(pod_aggregate_switches)
 
         # link aggregate switches and edge switches
         for aggregate_switch in pod_aggregate_switches:
