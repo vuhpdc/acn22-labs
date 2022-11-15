@@ -98,6 +98,38 @@ def GetRandomEdge(randomSwitch):
 		
 	return random.choice(edgeList)
 
+def CheckforMultGraphs(currentNode, visitedList, paths, path_id, final_node_id):
+	for edge in currentNode.edges:
+		#print("current=",currentNode.id,"r=",edge.rnode.id, "l=",edge.lnode.id, "path_id=",path_id, "total=",len(currentNode.edges))
+		
+		if edge.lnode.id == final_node_id:
+			#print("L End Reached")
+			visitedList[path_id].append(edge.lnode.id)
+			#print("visited list", path_id, visitedList[path_id])
+			return True
+
+						
+		elif edge.rnode.id == final_node_id:
+			#print("R End Reached")
+			visitedList[path_id].append(edge.rnode.id)
+			#print("visited list", path_id, visitedList[path_id])
+			return True
+			
+	
+		if not edge.rnode.id.startswith("c") and edge.rnode.id not in visitedList[path_id]:
+			#print("R NOde not present", currentNode.id, edge.rnode.id)
+			visitedList[path_id].append(edge.rnode.id)
+			if CheckforMultGraphs(edge.rnode, visitedList, paths, path_id, final_node_id):
+				return True
+				
+		if not edge.lnode.id.startswith("c") and edge.lnode.id not in visitedList[path_id]:
+			#print("L NOde not present", currentNode.id, edge.lnode.id)
+			visitedList[path_id].append(edge.lnode.id)
+			if CheckforMultGraphs(edge.lnode, visitedList, paths, path_id, final_node_id):
+				return True
+				
+	return False
+
 		
 def CheckAllConn(totalOpenPorts, switchList, num_ports):
 	index=0;
@@ -218,15 +250,30 @@ class Jellyfish:
 		
 		switchList = self.switches.copy()
 		CheckAllConn(totalOpenPorts, switchList, num_ports)
+
+		start_server_id = "c0"
+		visitedList = {}
+		paths = {}
+		for server in self.servers:
+			path_id = start_server_id+"_"+server.id
+			visitedList[path_id] = [start_server_id]
+			multigraph = CheckforMultGraphs(self.servers[0], visitedList, paths, path_id, server.id)
+			if not multigraph:
+				print("No path for", self.servers[0].id, server.id)
+				self.servers = []
+				self.switches = []
+				self.generate(num_servers, num_switches, num_ports)
+				break
+
 		
-		for currentSwitch in self.switches:
-			print("Switch Id:", currentSwitch.id)
-			#print("->", currentSwitch.edges)
-			if len(currentSwitch.edges) < num_ports:
-				for edge in currentSwitch.edges:
-					print("     ->",edge.lnode.id, edge.rnode.id)
-			else:
-				print("    -> All Conn Full")
+		# for currentSwitch in self.switches:
+		# 	print("Switch Id:", currentSwitch.id)
+		# 	#print("->", currentSwitch.edges)
+		# 	if len(currentSwitch.edges) < num_ports:
+		# 		for edge in currentSwitch.edges:
+		# 			print("     ->",edge.lnode.id, edge.rnode.id)
+		# 	else:
+		# 		print("    -> All Conn Full")
 
 
 
@@ -308,7 +355,7 @@ class Fattree:
             # pod_aggregate_switches.append(aggregate_switch.data)
             pod_aggregate_switches.append(aggregate_switch)
             self.switches.append(aggregate_switch)
-        self.aggregate_switches.append([pod_aggregate_switches])
+        self.aggregate_switches.append(pod_aggregate_switches)
 
         # link aggregate switches and edge switches
         for aggregate_switch in pod_aggregate_switches:
