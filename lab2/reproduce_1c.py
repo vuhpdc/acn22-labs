@@ -100,7 +100,6 @@ num_servers = 686
 num_switches = 245
 num_ports = 14
 
-
 # run jelly fish 10 times
 j_v_l = []
 for i in range(10):
@@ -138,6 +137,8 @@ print(f_k, j_k, c)
 
 plt.bar(j_k, j_v, width=0.3, label='JellyFish')
 plt.bar(f_k, f_v, width=0.3, label='FatTree')
+plt.xlabel('Path length')
+plt.ylabel('Fraction of Server Pairs')
 plt.xticks([int(x) + 0.3 for x in c], c)
 plt.legend()
 

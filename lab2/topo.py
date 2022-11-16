@@ -264,7 +264,7 @@ class Jellyfish:
             multigraph = CheckforMultGraphs(
                 self.servers[0], visitedList, paths, path_id, server.id)
             if not multigraph:
-                print("No path for", self.servers[0].id, server.id)
+                # print("No path for", self.servers[0].id, server.id)
                 self.servers = []
                 self.switches = []
                 self.generate(num_servers, num_switches, num_ports)
@@ -488,27 +488,23 @@ class BCube:
                 self.switches.append(switch)
             self.switches_in_levels.append(switches_in_level)
 
-        row_switches = self.max_switches_per_level
-
         for level in range(self.max_level_of_switches):
             hop = num_ports ** level
             max_server_count = num_ports ** (level + 1)
             current_server_count = 0
             count = 0
 
-            for switch in range(row_switches):
+            for switch in range(self.max_switches_per_level):
                 if (current_server_count == max_server_count):
                     count = count + 1
                     current_server_count = 0
 
                 for port in range(num_ports):
-                    connected_server = int(switch % (
+                    server_to_connect = int(switch % (
                         max_server_count / num_ports)) + (port * hop) + (count * max_server_count)
 
                     self.switches_in_levels[level][switch].add_edge(
-                        self.servers[connected_server])
-                    # print(
-                    #     self.switches_in_levels[level][switch].id, '->', self.servers[connected_server].id)
+                        self.servers[server_to_connect])
 
                     current_server_count += 1
 

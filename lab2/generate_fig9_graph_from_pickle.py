@@ -63,4 +63,6 @@ lste64.sort()
 plt.plot(lste64, 'y', label="64 way ECMP")
 
 plt.legend()
+plt.xlabel('Rank of Link')
+plt.ylabel('# Distinct Paths Link is on')
 plt.show()
