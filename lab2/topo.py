@@ -363,68 +363,68 @@ class Fattree:
 
 
 def getAvailableServer(currentDcell, serverConn, n):
-    for i in range(currentDcell, currentDcell+n):
-        if serverConn[i] == 1:
-            serverConn[i] += 1
-            return i
+	for i in range(currentDcell, currentDcell+n):
+		if serverConn[i] == 1:
+			serverConn[i] += 1
+			return i
 
 class DCell:
 
-    def __init__(self, n):
-        self.servers = []
-        self.switches = []
-        self.generate(n)
+	def __init__(self, n):
+		self.servers = []
+		self.switches = []
+		self.generate(n)
 
-    def generate(self, n):
+	def generate(self, n):
+		serverConn = []
+		# Lets add servers and switches and connect them
+		for i in range(0, n+1):
+			switchId = "s"+str(i)
 
-        serverConn = []
-        # Lets add servers and switches and connect them
-        for i in range(0, n+1):
-            switchId = "s"+str(i)
+			tempSwitchNode = Node(switchId, "switch")
+			self.switches.append(tempSwitchNode)
 
-            tempSwitchNode = Node(switchId, "switch")
-            self.switches.append(tempSwitchNode)
+			# Create n servers and link them to the switches
 
-            # Create n servers and link them to the switches
+			# Get the total of servers that were already created
+			CurrentServerCount = len(self.servers)
 
-            # Get the total of servers that were already created
-            CurrentServerCount = len(self.servers)
+			# Loop over the next set of servers and add them to the switch
+			for s in range(0, n):
+				# Cretes a new server as a node
+				server_id = "c."+str(i)+"."+str(s)
+				tempServerNode = Node(server_id, "server")
+				self.servers.append(tempServerNode)
 
-            # Loop over the next set of servers and add them to the switch
-            for s in range(0, n):
-                # Cretes a new server as a node
-                server_id = "c."+str(i)+"."+str(s)
-                tempServerNode = Node(server_id, "server")
-                self.servers.append(tempServerNode)
+				serverConn.append(1)
+				# Add an edge between the server and switch
+				tempSwitchNode.add_edge(tempServerNode)
 
-                serverConn.append(1)
-                # Add an edge between the server and switch
-                tempSwitchNode.add_edge(tempServerNode)
+		conn = []
+		for dcell in range(0, n):
+			for server_no in range(0, n):
+				server_index = dcell*n + server_no
 
-        conn = []
-        for dcell in range(0, n):
-            for server_no in range(0, n):
-                server_index = dcell*n + server_no
+				if serverConn[server_index] != 1:
+					continue
 
-                if serverConn[server_index] != 1:
-                    continue
+				server_node = self.servers[server_index]
 
-                server_node = self.servers[server_index]
+				next_server_index = 0
+				# if server_no+1 < n:
+				next_server_index = (server_no+1)*n
 
-                next_server_index = 0
-                # if server_no+1 < n:
-                next_server_index = (server_no+1)*n
+				avail_index = getAvailableServer(
+					next_server_index, serverConn, n)
 
-                avail_index = getAvailableServer(
-                    next_server_index, serverConn, n)
+				if avail_index and avail_index >= 0:
+					next_server_node = self.servers[avail_index]
+					server_node.add_edge(next_server_node)
+					conn.append([server_node.id, next_server_node.id])
 
-                if avail_index and avail_index >= 0:
-                    next_server_node = self.servers[avail_index]
-                    conn.append([server_node.id, next_server_node.id])
-
-                    serverConn[server_index] += 1
-                else:
-                    break
+					serverConn[server_index] += 1
+				else:
+					break
 
 class BCube:
 
