@@ -97,32 +97,26 @@ def frequency(server_pairs, all_distance):
 num_servers = 686
 num_switches = 245
 num_ports = 14
-'''
-num_servers = 6
-num_switches = 3
-num_ports = 4
-'''
-
-
-
-ft_topo = topo.Fattree(num_ports)
-jf_topo = topo.Jellyfish(num_servers, num_switches, num_ports)
 
 # TODO: code for reproducing Figure 1(c) in the jellyfish paper
 #For JellyFish
+jf_topo = topo.Jellyfish(num_servers, num_switches, num_ports)
 server_pairs = gen_server_pairs(jf_topo.servers)
 g1 = Graph(jf_topo.servers, jf_topo.switches)
 all_distance = g1.find_min_distance()
 jelly_histo = frequency(server_pairs, all_distance)
-plt.bar(*zip(*jelly_histo.items()))
+plt.bar(*zip(*jelly_histo.items()), label="Jelly fish")
+
 
 #For fat tree
+ft_topo = topo.Fattree(num_ports)
 server_pairs = gen_server_pairs(ft_topo.servers)
 g2 = Graph(ft_topo.servers,ft_topo.switches)
 all_distance = g2.find_min_distance()
 fat_histo = frequency(server_pairs, all_distance)
-plt.bar(*zip(*fat_histo.items()))
+plt.bar(*zip(*fat_histo.items()), label="Fat tree")
 
-plt.show()
+plt.legend()
+plt.savefig("Fig_1c_comparision.jpg")
 
 

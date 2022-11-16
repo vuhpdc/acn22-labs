@@ -17,13 +17,14 @@ import topo
 import sys
 import copy
 import pickle
-
-
+import random
 def gen_server_pairs(servers):
-    server_pairs = {}
-    for i in range(len(servers)):
-        for j in range(i+1, len(servers)):
-            server_pairs[(servers[i].id, servers[j].id)] = -1
+    server_pairs = []
+    all_servers_copy = servers[:]
+    for sender in servers:
+        recvr = random.choice(list(set(all_servers_copy)-set([sender])))
+        server_pairs.append((sender.id,recvr.id))
+        all_servers_copy.remove(recvr)
     return server_pairs
 
 
@@ -53,8 +54,8 @@ class Graph:
 
     def find_k_paths(self, K):
         all_distance = {}
-        self.pairs = list(self.server_pairs.keys())[:6000]
-        for (src, dst) in self.pairs:
+        print(len(self.server_pairs))
+        for (src, dst) in self.server_pairs:
             self.identify_neighbours()
             A = []
             A.append(self.dijkstra(src)[1][dst])
@@ -160,11 +161,6 @@ class Graph:
 num_servers = 686
 num_switches = 245
 num_ports = 14
-'''
-num_servers = 10
-num_switches = 3
-num_ports = 5
-'''
 
 jf_topo = topo.Jellyfish(num_servers, num_switches, num_ports)
 g1 = Graph(jf_topo.servers, jf_topo.switches)
