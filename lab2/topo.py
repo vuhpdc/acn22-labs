@@ -488,9 +488,7 @@ class BCube:
                 self.switches.append(switch)
             self.switches_in_levels.append(switches_in_level)
 
-        row_switches = self.max_switches_per_level
-
-        for level in range(self.max_level_of_switches):
+        for level in range(self.max_switches_per_level):
             hop = num_ports ** level
             max_server_count = num_ports ** (level + 1)
             current_server_count = 0
