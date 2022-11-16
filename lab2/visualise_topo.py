@@ -81,11 +81,12 @@ class GraphVisualization:
     # creates a graph with a given list
     # nx.draw_networkx(G) - plots the graph
     # plt.show() - displays the graph
-    def visualize(self):
+    def visualize(self,name):
         G = nx.Graph()
         G.add_edges_from(self.visual)
-        fig = plt.figure(2, figsize=(15, 15))
+        fig = plt.figure(2, figsize=(15, 15), label=name)
         nx.draw_networkx(G, node_size=1000, font_size=24)
+        plt.legend()
         plt.show()
 
 
@@ -95,7 +96,21 @@ num_ports = 4
 jf_topo = topo.Jellyfish(num_servers, num_switches, num_ports)
 ft_topo = topo.Fattree(num_ports)
 bc_topo = topo.BCube(1, 4)
+dc_topo = topo.DCell(4)
 
+
+g1 = Graph(dc_topo.servers, dc_topo.switches)
+g1.identify_neighbours()
+jgv = GraphVisualization()
+for i in g1.graph:
+    for j in g1.graph[i]:
+        if g1.graph[i][j] == 1:
+            jgv.addEdge(i, j)
+
+jgv.visualize("DCell")
+
+
+"""
 g1 = Graph(jf_topo.servers, jf_topo.switches)
 g1.identify_neighbours()
 jgv = GraphVisualization()
@@ -104,7 +119,7 @@ for i in g1.graph:
         if g1.graph[i][j] == 1:
             jgv.addEdge(i, j)
 
-jgv.visualize()
+jgv.visualize("JellyFish")
 
 g1 = Graph(ft_topo.servers, ft_topo.switches)
 g1.identify_neighbours()
@@ -114,7 +129,7 @@ for i in g1.graph:
         if g1.graph[i][j] == 1:
             jgv.addEdge(i, j)
 
-jgv.visualize()
+jgv.visualize("Fat tree")
 
 
 g1 = Graph(bc_topo.servers, bc_topo.switches)
@@ -125,4 +140,5 @@ for i in g1.graph:
         if g1.graph[i][j] == 1:
             jgv.addEdge(i, j)
 
-jgv.visualize()
+jgv.visualize("B-Cube")
+"""

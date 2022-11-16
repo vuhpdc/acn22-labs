@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 
-f = open("dict.pickle", "rb")
+f = open("BCube.pickle", "rb")
 ld_dict = pickle.load(f)
-
+print(ld_dict)
 
 def func_yen_8():
     edge_count = {}
@@ -34,7 +34,7 @@ def func_ecmp(cnt):
             if count == cnt or shp != len(paths):
                 break
             count += 1
-            for nodes in range(1, len(paths)-2):
+            for nodes in range(0, len(paths)-1):
                 a = paths[nodes]
                 b = paths[nodes+1]
                 try:
@@ -56,8 +56,10 @@ lste8 = list(ecmp8.values())
 lste8.sort()
 plt.plot(lste8, 'g', label="8 way ECMP")
 
+
 lste64 = list(ecmp64.values())
 lste64.sort()
 plt.plot(lste64, 'y', label="64 way ECMP")
+
 plt.legend()
-plt.savefig("jelly_fish_graph9.jpg")
+plt.show()

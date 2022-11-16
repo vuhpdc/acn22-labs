@@ -155,19 +155,13 @@ class Graph:
         #print(src.id, paths)
         return dist, paths
 
-# Setup for Jellyfish
+# Setup for Dcell
+n = 25
 
-
-num_servers = 686
-num_switches = 245
-num_ports = 14
-
-jf_topo = topo.Jellyfish(num_servers, num_switches, num_ports)
-g1 = Graph(jf_topo.servers, jf_topo.switches)
-# g1.find_min_distance()
-all_distance = g1.find_k_paths(64)
-f = open("dict.pickle", "wb")
-print(all_distance)
-pickle.dump(all_distance, f, protocol=pickle.HIGHEST_PROTOCOL)
-# print(all_distance)
 # TODO: code for reproducing Figure 9 in the jellyfish paper
+dc_topo = topo.DCell(n)
+g1 = Graph(dc_topo.servers, dc_topo.switches)
+all_distance = g1.find_k_paths(64)
+f = open("Dcell.pickle", "wb")
+pickle.dump(all_distance, f, protocol=pickle.HIGHEST_PROTOCOL)
+
