@@ -1,6 +1,5 @@
 import pickle
 import matplotlib.pyplot as plt
-import numpy as np
 import sys
 
 pickle_file = input("Enter path to pickle file : (For example : K_shortest_paths_pickle/Bcube.pickle) : ")
