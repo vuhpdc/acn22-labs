@@ -17,15 +17,18 @@ import topo
 import sys
 import copy
 import pickle
+
+
 def gen_server_pairs(servers):
     server_pairs = {}
     for i in range(len(servers)):
-        for j in range(i+1,len(servers)):
-            server_pairs[(servers[i].id,servers[j].id)] = -1
+        for j in range(i+1, len(servers)):
+            server_pairs[(servers[i].id, servers[j].id)] = -1
     return server_pairs
 
+
 class Graph:
-    def __init__(self,servers,switches):
+    def __init__(self, servers, switches):
         self.servers = servers
         self.server_pairs = gen_server_pairs(self.servers)
         self.entities = []
@@ -39,15 +42,15 @@ class Graph:
             self.graph[i.id] = {}
             for j in self.entities:
                 self.graph[i.id][j.id] = 0
-    
+
     def identify_neighbours(self):
         for i in self.entities:
             for j in i.edges:
-                if i.id != j.lnode.id :
+                if i.id != j.lnode.id:
                     self.graph[i.id][j.lnode.id] = 1
                 else:
                     self.graph[i.id][j.rnode.id] = 1
-    
+
     def find_k_paths(self, K):
         all_distance = {}
         self.pairs = list(self.server_pairs.keys())[:6000]
@@ -57,7 +60,7 @@ class Graph:
             A.append(self.dijkstra(src)[1][dst])
             spl = len(self.dijkstra(src)[1][dst])
             B = []
-            for kpath in range(1,K):
+            for kpath in range(1, K):
                 if len(A) < kpath:
                     break
                 for i in range(len(A[kpath-1])-2):
@@ -69,7 +72,6 @@ class Graph:
                                 self.graph[p[i]][p[i+1]] = 0
                                 self.graph[p[i+1]][p[i]] = 0
 
- 
                     for j in range(len(rootPath)-1):
                         node = rootPath[j]
                         for k in self.graph[node]:
@@ -78,16 +80,16 @@ class Graph:
                             self.graph[k][node] = 0
 
                     spurPath = self.dijkstra(spurNode)[1][dst]
-                    if len(spurPath)>1 and spurPath[-1] == dst:
+                    if len(spurPath) > 1 and spurPath[-1] == dst:
                         totalPath = []
                         for j in rootPath:
                             totalPath.append(j)
                         for k in spurPath[1:]:
                             totalPath.append(k)
-                        
+
                         if totalPath not in B:
                             B.append(copy.deepcopy(totalPath))
-                
+
                     self.identify_neighbours()
                 if B == []:
                     break
@@ -98,17 +100,17 @@ class Graph:
                         min_path = paths
                         min = len(B[paths])
 
-                #ECMP for 64way
+                # ECMP for 64way
                 if kpath >= 8:
                     if len(B[min_path]) != spl:
                         break
 
                 if B[min_path] not in A:
-                    A.append(copy.deepcopy(B[min_path]))#deep copy
-                
+                    A.append(copy.deepcopy(B[min_path]))  # deep copy
+
                 del B[min_path]
 
-            all_distance[(src,dst)] = A #deep copy
+            all_distance[(src, dst)] = A  # deep copy
         return all_distance
 
     def find_min_distance(self):
@@ -121,7 +123,7 @@ class Graph:
             break
         return all_distance
 
-    def min_distance(self,dist,sptSet):
+    def min_distance(self, dist, sptSet):
         min = sys.maxsize
         min_index = 0
         for u in self.entities:
@@ -132,10 +134,10 @@ class Graph:
         return min_index
 
     def dijkstra(self, src):
-        dist = {i.id:sys.maxsize for i in self.entities}
+        dist = {i.id: sys.maxsize for i in self.entities}
         dist[src] = 0
-        sptSet = {i.id:False for i in self.entities}
-        paths = {i.id:[] for i in self.entities}
+        sptSet = {i.id: False for i in self.entities}
+        paths = {i.id: [] for i in self.entities}
         paths[src] = [src]
         for i in self.entities:
             x = self.min_distance(dist, sptSet)
@@ -144,7 +146,7 @@ class Graph:
                 try:
                     if self.graph[x][y.id] > 0 and sptSet[y.id] == False and dist[y.id] > dist[x] + self.graph[x][y.id]:
                         paths[y.id].extend(paths[x])
-                        #paths[y.id].append(x)
+                        # paths[y.id].append(x)
                         paths[y.id].append(y.id)
                         dist[y.id] = dist[x] + self.graph[x][y.id]
                 except:
@@ -153,6 +155,7 @@ class Graph:
         return dist, paths
 
 # Setup for Jellyfish
+
 
 num_servers = 686
 num_switches = 245
@@ -165,10 +168,10 @@ num_ports = 5
 
 jf_topo = topo.Jellyfish(num_servers, num_switches, num_ports)
 g1 = Graph(jf_topo.servers, jf_topo.switches)
-#g1.find_min_distance()
+# g1.find_min_distance()
 all_distance = g1.find_k_paths(64)
-f = open("dict.pickle","wb")
+f = open("dict.pickle", "wb")
 print(all_distance)
 pickle.dump(all_distance, f, protocol=pickle.HIGHEST_PROTOCOL)
-#print(all_distance)
+# print(all_distance)
 # TODO: code for reproducing Figure 9 in the jellyfish paper
