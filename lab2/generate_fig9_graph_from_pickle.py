@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 
-f = open("BCube.pickle", "rb")
+pickle_file = input("Enter path to pickle file : (For example : K_shortest_paths_pickle/Bcube.pickle) : ")
+f = open(pickle_file, "rb")
 ld_dict = pickle.load(f)
 print(ld_dict)
 

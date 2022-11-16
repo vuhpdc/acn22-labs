@@ -95,15 +95,10 @@ def frequency(server_pairs, all_distance):
     return histogram
 
 
-# Same setup for Jellyfish and Fattree
+#Configuration
 num_servers = 686
 num_switches = 245
 num_ports = 14
-
-
-# num_servers = 6
-# num_switches = 3
-# num_ports = 4
 
 
 # run jelly fish 10 times
