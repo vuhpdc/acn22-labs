@@ -264,7 +264,7 @@ class Jellyfish:
             multigraph = CheckforMultGraphs(
                 self.servers[0], visitedList, paths, path_id, server.id)
             if not multigraph:
-                print("No path for", self.servers[0].id, server.id)
+                # print("No path for", self.servers[0].id, server.id)
                 self.servers = []
                 self.switches = []
                 self.generate(num_servers, num_switches, num_ports)

@@ -143,8 +143,8 @@ num_ports = 4
 reproduce_jelly(num_servers, num_switches, num_ports)
 
 # b-cube
-num_levels = 4
-num_ports = 2
+num_levels = 1
+num_ports = 4
 reproduce_bcube(num_levels, num_ports)
 
 # d-cell
