@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 
-f = open("BCube.pickle", "rb")
+f = open("K_shortest_paths_pickle/JellyFish.pickle", "rb")
 ld_dict = pickle.load(f)
 print(ld_dict)
 
@@ -62,4 +62,6 @@ lste64.sort()
 plt.plot(lste64, 'y', label="64 way ECMP")
 
 plt.legend()
+plt.xlabel('Rank of Link')
+plt.ylabel('# Distinct Paths Link is on')
 plt.show()
