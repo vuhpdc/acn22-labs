@@ -148,5 +148,5 @@ num_ports = 4
 reproduce_bcube(num_levels, num_ports)
 
 # d-cell
-num_servers = 5
+num_servers = 4
 reproduce_dcell(num_servers)

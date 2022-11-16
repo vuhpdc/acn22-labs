@@ -142,4 +142,4 @@ plt.ylabel('Fraction of Server Pairs')
 plt.xticks([int(x) + 0.3 for x in c], c)
 plt.legend()
 
-plt.savefig('Figure_1c.jpg')
+plt.show()
