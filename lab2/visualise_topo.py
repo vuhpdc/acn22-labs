@@ -8,6 +8,8 @@ import queue
 from random import randrange
 import math
 
+# region Graph
+
 
 class Graph:
     def __init__(self, servers, switches):
@@ -81,64 +83,70 @@ class GraphVisualization:
     # creates a graph with a given list
     # nx.draw_networkx(G) - plots the graph
     # plt.show() - displays the graph
-    def visualize(self,name):
+    def visualize(self, name, title):
+        plt.clf()
         G = nx.Graph()
         G.add_edges_from(self.visual)
-        fig = plt.figure(2, figsize=(15, 15), label=name)
-        nx.draw_networkx(G, node_size=1000, font_size=24)
-        plt.legend()
-        plt.show()
+        fig = plt.figure(1, figsize=(20, 10))
+        plt.title(title)
+        nx.draw_networkx(G, node_size=10, font_size=12)
+        # plt.show()
+        plt.savefig('Topo/' + name)
+
+# endregion
 
 
+def plot_graph(topo, name, title):
+    g1 = Graph(topo.servers, topo.switches)
+    g1.identify_neighbours()
+    jgv = GraphVisualization()
+    for i in g1.graph:
+        for j in g1.graph[i]:
+            if g1.graph[i][j] == 1:
+                jgv.addEdge(i, j)
+
+    jgv.visualize(name, title)
+
+
+def reproduce_fattree(num_ports):
+    ft_topo = topo.Fattree(num_ports)
+    plot_graph(ft_topo, 'FatTree_' + str(num_ports) +
+               '.jpg', 'Number of ports(n): ' + str(num_ports))
+
+
+def reproduce_jelly(num_servers, num_switches, num_ports):
+    jf_topo = topo.Jellyfish(num_servers, num_switches, num_ports)
+    plot_graph(jf_topo, 'JellyFish_' + str(num_servers) +
+               '_' + str(num_switches) + '_' + str(num_ports) + '.jpg', 'Numbers of Servers: ' + str(num_servers) + ', Number of Switches: ' + str(num_switches) + ', Number of Ports: ' + str(num_ports))
+
+
+def reproduce_bcube(num_levels, num_ports):
+    bc_topo = topo.BCube(num_levels, num_ports)
+    plot_graph(bc_topo, 'BCube_' + str(num_levels) +
+               '_' + str(num_ports) + '.jpg', 'Numbers of Levels(k): ' + str(num_levels) + ', Number of Ports(n): ' + str(num_ports))
+
+
+def reproduce_dcell(num_servers):
+    dc_topo = topo.DCell(num_servers)
+    plot_graph(dc_topo, 'DCell_' + str(num_servers) + '.jpg',
+               'Numbers of Servers in each DCell: ' + str(num_servers))
+
+
+# fat-tree
+num_ports = 4
+reproduce_fattree(num_ports)
+
+# jelly-tree
 num_servers = 20
 num_switches = 10
 num_ports = 4
-jf_topo = topo.Jellyfish(num_servers, num_switches, num_ports)
-ft_topo = topo.Fattree(num_ports)
-bc_topo = topo.BCube(1, 4)
-dc_topo = topo.DCell(4)
+reproduce_jelly(num_servers, num_switches, num_ports)
 
+# b-cube
+num_levels = 4
+num_ports = 2
+reproduce_bcube(num_levels, num_ports)
 
-g1 = Graph(dc_topo.servers, dc_topo.switches)
-g1.identify_neighbours()
-jgv = GraphVisualization()
-for i in g1.graph:
-    for j in g1.graph[i]:
-        if g1.graph[i][j] == 1:
-            jgv.addEdge(i, j)
-
-jgv.visualize("DCell")
-
-
-"""
-g1 = Graph(jf_topo.servers, jf_topo.switches)
-g1.identify_neighbours()
-jgv = GraphVisualization()
-for i in g1.graph:
-    for j in g1.graph[i]:
-        if g1.graph[i][j] == 1:
-            jgv.addEdge(i, j)
-
-jgv.visualize("JellyFish")
-
-g1 = Graph(ft_topo.servers, ft_topo.switches)
-g1.identify_neighbours()
-jgv = GraphVisualization()
-for i in g1.graph:
-    for j in g1.graph[i]:
-        if g1.graph[i][j] == 1:
-            jgv.addEdge(i, j)
-
-jgv.visualize("Fat tree")
-
-
-g1 = Graph(bc_topo.servers, bc_topo.switches)
-g1.identify_neighbours()
-jgv = GraphVisualization()
-for i in g1.graph:
-    for j in g1.graph[i]:
-        if g1.graph[i][j] == 1:
-            jgv.addEdge(i, j)
-
-jgv.visualize("B-Cube")
-"""
+# d-cell
+num_servers = 5
+reproduce_dcell(num_servers)

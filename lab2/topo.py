@@ -19,6 +19,8 @@ import queue
 from random import randrange
 import math
 
+# region graph
+
 # Class for an edge in the graph
 
 
@@ -61,6 +63,10 @@ class Node:
             if edge.lnode == node or edge.rnode == node:
                 return True
         return False
+
+# endregion
+
+# region JellyFish
 
 
 def getRandomSwitch(currentSwitch, switchList, totalOpenPorts):
@@ -140,14 +146,14 @@ def CheckAllConn(totalOpenPorts, switchList, num_ports):
     index = 0
     for op in totalOpenPorts:
         if totalOpenPorts[op] < num_ports and totalOpenPorts[op] > 0:
-            print("Switches Open:", op, totalOpenPorts[op])
+            # print("Switches Open:", op, totalOpenPorts[op])
             currentSwitch = switchList[index]
 
             randomSwitch = getRandomAvailableSwitch(switchList, totalOpenPorts)
 
             diffConn = num_ports - totalOpenPorts[op]
             if diffConn == 1:
-                print("Diff conn one")
+                # print("Diff conn one")
                 # Select a random edge to sever old connection and start a new connection
                 currentEdge = GetRandomEdge(currentSwitch)
                 randomEdge = GetRandomEdge(randomSwitch)
@@ -162,7 +168,7 @@ def CheckAllConn(totalOpenPorts, switchList, num_ports):
                 totalOpenPorts[op] -= 1
 
             else:
-                print("Doing Someting Awesome", diffConn)
+                # print("Doing Someting Awesome", diffConn)
                 for i in range(0, diffConn):
                     # Select a random edge to sever old connection and start a new connection
                     randomEdge = GetRandomEdge(randomSwitch)
@@ -195,9 +201,9 @@ class Jellyfish:
         # Define the total openports
         totalOpenPorts = {}
 
-        print("Servers per switch", num_servers, num_switches, ServerPerSwitch)
+        # print("Servers per switch", num_servers, num_switches, ServerPerSwitch)
         if num_ports < ServerPerSwitch:
-            print("Not Enough Ports", num_ports, ServerPerSwitch)
+            # print("Not Enough Ports", num_ports, ServerPerSwitch)
             return
 
         # Lets add servers and switches and connect them
@@ -272,6 +278,10 @@ class Jellyfish:
         # 			print("     ->",edge.lnode.id, edge.rnode.id)
         # 	else:
         # 		print("    -> All Conn Full")
+
+# endregion
+
+# region FatTree
 
 
 class Fattree:
@@ -361,12 +371,17 @@ class Fattree:
                 # self.addLink(aggregate_switch.data, edge_switch.data)
                 aggregate_switch.add_edge(edge_switch)
 
+# endregion
+
+# region DCell
+
 
 def getAvailableServer(currentDcell, serverConn, n):
 	for i in range(currentDcell, currentDcell+n):
 		if serverConn[i] == 1:
 			serverConn[i] += 1
 			return i
+
 
 class DCell:
 
@@ -426,6 +441,11 @@ class DCell:
 				else:
 					break
 
+# endregion
+
+# region BCube
+
+
 class BCube:
 
     def __init__(self, num_levels, num_ports):
@@ -473,13 +493,13 @@ class BCube:
         for level in range(self.max_level_of_switches):
             hop = num_ports ** level
             max_server_count = num_ports ** (level + 1)
-            current_server_count = max_server_count
+            current_server_count = 0
             count = 0
 
             for switch in range(row_switches):
-                if (current_server_count == 0):
+                if (current_server_count == max_server_count):
                     count = count + 1
-                    current_server_count = max_server_count
+                    current_server_count = 0
 
                 for port in range(num_ports):
                     connected_server = int(switch % (
@@ -490,4 +510,6 @@ class BCube:
                     # print(
                     #     self.switches_in_levels[level][switch].id, '->', self.servers[connected_server].id)
 
-                    current_server_count = current_server_count - 1
+                    current_server_count += 1
+
+# endregion
