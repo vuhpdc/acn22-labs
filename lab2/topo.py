@@ -500,13 +500,11 @@ class BCube:
                     current_server_count = 0
 
                 for port in range(num_ports):
-                    connected_server = int(switch % (
+                    server_to_connect = int(switch % (
                         max_server_count / num_ports)) + (port * hop) + (count * max_server_count)
 
                     self.switches_in_levels[level][switch].add_edge(
-                        self.servers[connected_server])
-                    # print(
-                    #     self.switches_in_levels[level][switch].id, '->', self.servers[connected_server].id)
+                        self.servers[server_to_connect])
 
                     current_server_count += 1
 
