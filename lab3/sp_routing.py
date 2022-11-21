@@ -56,16 +56,52 @@ class SPRouter(app_manager.RyuApp):
         self.switch_to_switch_ports = {}
         self.switch_to_host_ports = {}
         
+        # switch and port to ip mapping
+        self.switch_to_ip= {}
+        
         self.mac_to_port = {}
 
 
-    # # Topology discovery
-    # @set_ev_cls(event.EventSwitchEnter)
-    # def get_topology_data(self, ev):
+    # Topology discovery
+    @set_ev_cls(event.EventSwitchEnter)
+    def get_topology_data(self, ev):
 
-    #     # Switches and links in the network
-    #     switches = get_switch(self, None)
-    #     links = get_link(self, None)
+        # # Switches and links in the network
+        # switches = get_switch(self, None)
+        # links = get_link(self, None)
+        
+        # The Function get_switch(self, None) outputs the list of switches.
+        self.topo_raw_switches = copy.copy(get_switch(self, None))
+        # The Function get_link(self, None) outputs the list of links.
+        self.topo_raw_links = copy.copy(get_link(self, None))
+        # get all the ports from switches
+        for switch in self.topo_raw_switches:
+            dpid = switch.dp.id
+            self.datapaths[dpid] = switch.dp
+            self.switch_ports.setdefault(dpid, set())
+            self.switch_to_switch_ports.setdefault(dpid, set())
+            self.switch_to_host_ports.setdefault(dpid, set())
+            
+            for port in switch.ports:
+                self.switch_ports[dpid].add(port.port_no)
+                
+        self.switches = self.switch_ports.keys()
+                
+        for link in self.topo_raw_links:
+            src_dpid = link.src.dpid
+            dst_dpid = link.dst.dpid
+            src_port = link.src.port_no
+            dst_port = link.dst.port_no
+            
+            self.port_to_switch[(src_dpid, dst_dpid)] = (src_port, dst_port)
+            
+            if src_dpid in self.switches:
+                self.switch_to_switch_ports[src_dpid].add(src_port)
+            if dst_dpid in self.switches:
+                self.switch_to_switch_ports[dst_dpid].add(dst_port)
+        
+        for switch in self.switch_ports:
+            self.switch_to_host_ports[switch] = self.switch_ports[switch] - self.switch_to_switch_ports[switch]
             
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
@@ -115,39 +151,6 @@ class SPRouter(app_manager.RyuApp):
             # ignore lldp packet
             return
         
-        # The Function get_switch(self, None) outputs the list of switches.
-        self.topo_raw_switches = copy.copy(get_switch(self, None))
-        # The Function get_link(self, None) outputs the list of links.
-        self.topo_raw_links = copy.copy(get_link(self, None))
-        # get all the ports from switches
-        for switch in self.topo_raw_switches:
-            dpid = switch.dp.id
-            self.datapaths[dpid] = switch.dp
-            self.switch_ports.setdefault(dpid, set())
-            self.switch_to_switch_ports.setdefault(dpid, set())
-            self.switch_to_host_ports.setdefault(dpid, set())
-            
-            for port in switch.ports:
-                self.switch_ports[dpid].add(port.port_no)
-                
-        self.switches = self.switch_ports.keys()
-                
-        for link in self.topo_raw_links:
-            src_dpid = link.src.dpid
-            dst_dpid = link.dst.dpid
-            src_port = link.src.port_no
-            dst_port = link.dst.port_no
-            
-            self.port_to_switch[(src_dpid, dst_dpid)] = (src_port, dst_port)
-            
-            if src_dpid in self.switches:
-                self.switch_to_switch_ports[src_dpid].add(src_port)
-            if dst_dpid in self.switches:
-                self.switch_to_switch_ports[dst_dpid].add(dst_port)
-        
-        for switch in self.switch_ports:
-            self.switch_to_host_ports[switch] = self.switch_ports[switch] - self.switch_to_switch_ports[switch]
-        
         print('Switches: ', self.switches)
         print('Switch Ports: ', self.switch_ports)
         print('Host Ports: ', self.switch_to_host_ports)
@@ -167,11 +170,6 @@ class SPRouter(app_manager.RyuApp):
             arp_src_ip = arp_pkt.src_ip
             arp_dst_ip = arp_pkt.dst_ip
             mac = arp_pkt.src_mac
-            
-            
-            # # Switches and links in the network
-            # switches = get_switch(self, None)
-            # links = get_link(self, None)
             
             print('switch: {}, in_port: {}, arp_src_ip: {}, arp_dst_ip: {}, src_mac: {}'.format(dpid, in_port, arp_src_ip, arp_dst_ip, mac))
             # Record the access info
