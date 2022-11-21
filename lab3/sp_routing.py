@@ -68,11 +68,9 @@ class SPRouter(app_manager.RyuApp):
             if(src_host.type == 'server'):
                 for dst_host in self.topo_net.servers:
                     if(dst_host.type == 'server' and src_host.dpid != dst_host.dpid):
-                        paths = all_distance[src_host.dpid][dst_host.dpid][:-1]
+                        path = all_distance[src_host.dpid][dst_host.dpid][:-1]
                         self.server_to_server_sp[(
-                            src_host.ip, dst_host.ip)] = all_distance[src_host.dpid][dst_host.dpid][:-1]
-
-        print(self.server_to_server_sp)
+                            src_host.ip, dst_host.ip)] = path
 
     # Topology discovery
     @set_ev_cls(event.EventSwitchEnter)
@@ -106,6 +104,7 @@ class SPRouter(app_manager.RyuApp):
             dst_port = link.dst.port_no
 
             self.port_to_switch[(src_dpid, dst_dpid)] = (src_port, dst_port)
+            self.port_to_switch[(dst_dpid, src_dpid)] = (dst_port, src_port)
 
             if src_dpid in self.switches:
                 self.switch_to_switch_ports[src_dpid].add(src_port)
@@ -162,11 +161,8 @@ class SPRouter(app_manager.RyuApp):
             # ignore lldp packet
             return
 
-        # print('Switches: ', self.switches)
-        # print('Switch Ports: ', self.switch_ports)
-        # print('Host Ports: ', self.switch_to_host_ports)
-        # print('Switch to Switch Ports: ', self.switch_to_switch_ports)
-
+        print(self.port_to_switch)
+        
         if ip_pkt:
             src_ipv4 = ip_pkt.src
             src_mac = eth_pkt.src
@@ -174,9 +170,9 @@ class SPRouter(app_manager.RyuApp):
 
             print('switch: {}, in_port: {}, src_ip: {}, dst_ip: {}, src_mac: {}'.format(
                 dpid, in_port, src_ipv4, dst_ipv4, src_mac))
-            # self.ip_sp_forwarding(msg, eth.ethertype, src_ipv4, dst_ipv4)
-            
-            
+            self.ip_sp_forwarding(dpid, in_port, msg,
+                                  eth.ethertype, src_ipv4, dst_ipv4)
+
         if arp_pkt:
             arp_src_ip = arp_pkt.src_ip
             arp_dst_ip = arp_pkt.dst_ip
@@ -188,16 +184,9 @@ class SPRouter(app_manager.RyuApp):
             # self.register_access_info(datapath.id, in_port, arp_src_ip, mac)
 
             if in_port in self.switch_to_host_ports[dpid]:
-                if (dpid, in_port) in self.switch_to_ip:
-                    if self.switch_to_ip[(dpid, in_port)] == (arp_src_ip, mac):
-                        return
-                    else:
-                        self.switch_to_ip[(dpid, in_port)] = (arp_src_ip, mac)
-                        return
-                else:
+                if (dpid, in_port) not in self.switch_to_ip:
                     self.switch_to_ip.setdefault((dpid, in_port), None)
                     self.switch_to_ip[(dpid, in_port)] = (arp_src_ip, mac)
-                    return
 
             # check if we have the destination ip mapped to a switch and port
             server_details = self.get_server_details(arp_dst_ip)
@@ -216,17 +205,78 @@ class SPRouter(app_manager.RyuApp):
                     for port in self.switch_to_host_ports[dpid]:
                         if (dpid, port) not in self.switch_to_ip.keys():
                             datapath = self.datapaths[dpid]
-                            actions = [(datapath.ofproto_parser.OFPActionOutput(port))]
+                            actions = [
+                                (datapath.ofproto_parser.OFPActionOutput(port))]
                             out = datapath.ofproto_parser.OFPPacketOut(
                                 datapath=datapath, buffer_id=ofproto.OFP_NO_BUFFER,
                                 data=msg.data, in_port=ofproto.OFPP_CONTROLLER, actions=actions)
                             datapath.send_msg(out)
-
-        # print(switches)
-        # print(links)
 
     def get_server_details(self, server_ip):
         for key in self.switch_to_ip.keys():
             if self.switch_to_ip[key][0] == server_ip:
                 return key
         return None
+
+    def ip_sp_forwarding(self, dpid, in_port, msg, eth_type, ip_src, ip_dst):
+        datapath = msg.datapath
+        parser = datapath.ofproto_parser
+
+        result = self.get_switches_details(dpid, in_port, ip_src, ip_dst)
+        if result:
+            src_sw, dst_sw, to_dst_port = result[0], result[1], result[2]
+            if dst_sw:
+                # Path has already calculated, just get it.
+                to_dst_match = parser.OFPMatch(eth_type=eth_type, ipv4_dst=ip_dst)
+                port_no = self.set_sp_forwarding(ip_src, ip_dst, src_sw, dst_sw, to_dst_port, to_dst_match)
+                # send packet forward
+                actions = [(datapath.ofproto_parser.OFPActionOutput(port_no))]
+                out = datapath.ofproto_parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id,data=msg.data, in_port=in_port, actions=actions)
+                if out:
+                    datapath.send_msg(out)
+        return
+    
+    def set_sp_forwarding(self,
+                          ip_src,
+                          ip_dst,
+                          src_dpid, 
+                          dst_dpid, 
+                          to_port_no,
+                          to_dst_match):
+        path = self.server_to_server_sp[(ip_src, ip_dst)]
+        print(path)
+        if len(path) == 1:
+            dp = self.datapaths[src_dpid]
+            actions = [dp.ofproto_parser.OFPActionOutput(to_port_no)]
+            self.add_flow(dp, 10, to_dst_match, actions)
+            port_no = to_port_no
+        else:
+            for index, dpid in enumerate(path):
+                port_no = self.port_to_switch[(int(path[index]), int(path[index + 1]))][0]
+                dp = self.datapaths[dpid]
+                actions = [dp.ofproto_parser.OFPActionOutput(port_no)]
+                self.add_flow(dp, 10, to_dst_match, actions)
+            dst_dp = self.datapaths[dst_dpid]
+            actions = [dst_dp.ofproto_parser.OFPActionOutput(to_port_no)]
+            self.add_flow(dst_dp, 10, to_dst_match, actions)
+            port_no = self.port_to_switch[(int(path[0]), int(path[1]))][0]
+        
+        return port_no
+
+    def get_switches_details(self, dpid, in_port, src_ip, dst_ip):
+        src_sw = dpid
+        dst_sw = None
+        dst_port = None
+
+        src_location = self.get_server_details(src_ip)
+        if in_port in self.switch_to_host_ports[dpid]:
+            if (dpid,  in_port) == src_location:
+                src_sw = src_location[0]
+            else:
+                return None
+
+        dst_location = self.get_server_details(dst_ip)
+        if dst_location:
+            dst_sw = dst_location[0]
+            dst_port = dst_location[1]
+        return src_sw, dst_sw, dst_port
