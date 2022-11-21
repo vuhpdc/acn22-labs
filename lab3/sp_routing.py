@@ -25,11 +25,14 @@ from ryu.lib.mac import haddr_to_bin
 from ryu.lib.packet import packet
 from ryu.lib.packet import ipv4
 from ryu.lib.packet import arp
+from ryu.lib.packet import ethernet
+from ryu.lib.packet import ether_types
 
 from ryu.topology import event, switches
 from ryu.topology.api import get_switch, get_link
 from ryu.app.wsgi import ControllerBase
 
+import copy
 import topo
 
 class SPRouter(app_manager.RyuApp):
@@ -39,16 +42,31 @@ class SPRouter(app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
         super(SPRouter, self).__init__(*args, **kwargs)
         self.topo_net = topo.Fattree(4)
+        # Holds the topology data and structure
+        self.topo_raw_switches = []
+        self.topo_raw_links = []
+        
+        self.switches = []
+        self.datapaths = {}
+        # switch to port mapping
+        self.port_to_switch = {}
+        
+        # port mappings
+        self.switch_ports = {}
+        self.switch_to_switch_ports = {}
+        self.switch_to_host_ports = {}
+        
+        self.mac_to_port = {}
 
 
-    # Topology discovery
-    @set_ev_cls(event.EventSwitchEnter)
-    def get_topology_data(self, ev):
+    # # Topology discovery
+    # @set_ev_cls(event.EventSwitchEnter)
+    # def get_topology_data(self, ev):
 
-        # Switches and links in the network
-        switches = get_switch(self, None)
-        links = get_link(self, None)
-
+    #     # Switches and links in the network
+    #     switches = get_switch(self, None)
+    #     links = get_link(self, None)
+            
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
@@ -84,3 +102,82 @@ class SPRouter(app_manager.RyuApp):
         parser = datapath.ofproto_parser
 
         # TODO: handle new packets at the controller
+        in_port = msg.match['in_port']
+        pkt = packet.Packet(msg.data)
+        self.mac_to_port.setdefault(dpid, {})
+        
+        eth = pkt.get_protocols(ethernet.ethernet)[0]
+        eth_pkt = pkt.get_protocol(ethernet.ethernet)
+        arp_pkt = pkt.get_protocol(arp.arp)
+        ip_pkt = pkt.get_protocol(ipv4.ipv4)
+        
+        if eth.ethertype == ether_types.ETH_TYPE_LLDP:
+            # ignore lldp packet
+            return
+        
+        # The Function get_switch(self, None) outputs the list of switches.
+        self.topo_raw_switches = copy.copy(get_switch(self, None))
+        # The Function get_link(self, None) outputs the list of links.
+        self.topo_raw_links = copy.copy(get_link(self, None))
+        # get all the ports from switches
+        for switch in self.topo_raw_switches:
+            dpid = switch.dp.id
+            self.datapaths[dpid] = switch.dp
+            self.switch_ports.setdefault(dpid, set())
+            self.switch_to_switch_ports.setdefault(dpid, set())
+            self.switch_to_host_ports.setdefault(dpid, set())
+            
+            for port in switch.ports:
+                self.switch_ports[dpid].add(port.port_no)
+                
+        self.switches = self.switch_ports.keys()
+                
+        for link in self.topo_raw_links:
+            src_dpid = link.src.dpid
+            dst_dpid = link.dst.dpid
+            src_port = link.src.port_no
+            dst_port = link.dst.port_no
+            
+            self.port_to_switch[(src_dpid, dst_dpid)] = (src_port, dst_port)
+            
+            if src_dpid in self.switches:
+                self.switch_to_switch_ports[src_dpid].add(src_port)
+            if dst_dpid in self.switches:
+                self.switch_to_switch_ports[dst_dpid].add(dst_port)
+        
+        for switch in self.switch_ports:
+            self.switch_to_host_ports[switch] = self.switch_ports[switch] - self.switch_to_switch_ports[switch]
+        
+        print('Switches: ', self.switches)
+        print('Switch Ports: ', self.switch_ports)
+        print('Host Ports: ', self.switch_to_host_ports)
+        print('Switch to Switch Ports: ', self.switch_to_switch_ports)
+        
+        
+        if ip_pkt:
+            src_ipv4 = ip_pkt.src
+            src_mac = eth_pkt.src
+            dst_ipv4 = ip_pkt.dst
+            
+            print('switch: {}, in_port: {}, src_ip: {}, dst_ip: {}, src_mac: {}'.format(dpid, in_port, src_ipv4, dst_ipv4, src_mac))
+            # if src_ipv4 != '0.0.0.0' and src_ipv4 != '255.255.255.255':
+            #     self.register_access_info(datapath.id, in_port, src_ipv4, src_mac)
+
+        if arp_pkt:
+            arp_src_ip = arp_pkt.src_ip
+            arp_dst_ip = arp_pkt.dst_ip
+            mac = arp_pkt.src_mac
+            
+            
+            # # Switches and links in the network
+            # switches = get_switch(self, None)
+            # links = get_link(self, None)
+            
+            print('switch: {}, in_port: {}, arp_src_ip: {}, arp_dst_ip: {}, src_mac: {}'.format(dpid, in_port, arp_src_ip, arp_dst_ip, mac))
+            # Record the access info
+            # self.register_access_info(datapath.id, in_port, arp_src_ip, mac)
+
+        
+        # print(switches)
+        # print(links)
+        
