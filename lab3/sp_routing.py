@@ -67,10 +67,9 @@ class SPRouter(app_manager.RyuApp):
         for src_host in self.topo_net.servers:
             if(src_host.type == 'server'):
                 for dst_host in self.topo_net.servers:
-                    if(dst_host.type == 'server' and src_host.dpid != dst_host.dpid):
-                        path = all_distance[src_host.dpid][dst_host.dpid][:-1]
-                        self.server_to_server_sp[(
-                            src_host.ip, dst_host.ip)] = path
+                    if(dst_host.type == 'server' and src_host.id != dst_host.id):
+                        path = all_distance[src_host.id][dst_host.id][:-1]
+                        self.server_to_server_sp[(src_host.ip, dst_host.ip)] = path
 
     # Topology discovery
     @set_ev_cls(event.EventSwitchEnter)
@@ -160,16 +159,12 @@ class SPRouter(app_manager.RyuApp):
         if eth.ethertype == ether_types.ETH_TYPE_LLDP:
             # ignore lldp packet
             return
-
-        print(self.port_to_switch)
         
         if ip_pkt:
             src_ipv4 = ip_pkt.src
             src_mac = eth_pkt.src
             dst_ipv4 = ip_pkt.dst
 
-            print('switch: {}, in_port: {}, src_ip: {}, dst_ip: {}, src_mac: {}'.format(
-                dpid, in_port, src_ipv4, dst_ipv4, src_mac))
             self.ip_sp_forwarding(dpid, in_port, msg,
                                   eth.ethertype, src_ipv4, dst_ipv4)
 
@@ -177,11 +172,6 @@ class SPRouter(app_manager.RyuApp):
             arp_src_ip = arp_pkt.src_ip
             arp_dst_ip = arp_pkt.dst_ip
             mac = arp_pkt.src_mac
-
-            print('switch: {}, in_port: {}, arp_src_ip: {}, arp_dst_ip: {}, src_mac: {}'.format(
-                dpid, in_port, arp_src_ip, arp_dst_ip, mac))
-            # Record the access info
-            # self.register_access_info(datapath.id, in_port, arp_src_ip, mac)
 
             if in_port in self.switch_to_host_ports[dpid]:
                 if (dpid, in_port) not in self.switch_to_ip:
@@ -244,22 +234,21 @@ class SPRouter(app_manager.RyuApp):
                           to_port_no,
                           to_dst_match):
         path = self.server_to_server_sp[(ip_src, ip_dst)]
-        print(path)
         if len(path) == 1:
             dp = self.datapaths[src_dpid]
             actions = [dp.ofproto_parser.OFPActionOutput(to_port_no)]
             self.add_flow(dp, 10, to_dst_match, actions)
             port_no = to_port_no
         else:
-            for index, dpid in enumerate(path):
-                port_no = self.port_to_switch[(int(path[index]), int(path[index + 1]))][0]
-                dp = self.datapaths[dpid]
+            for index, dpid in enumerate(path[:-1]):
+                port_no = self.port_to_switch[(int(path[index][1:]), int(path[index + 1][1:]))][0]
+                dp = self.datapaths[int(dpid[1:])]
                 actions = [dp.ofproto_parser.OFPActionOutput(port_no)]
                 self.add_flow(dp, 10, to_dst_match, actions)
             dst_dp = self.datapaths[dst_dpid]
             actions = [dst_dp.ofproto_parser.OFPActionOutput(to_port_no)]
             self.add_flow(dst_dp, 10, to_dst_match, actions)
-            port_no = self.port_to_switch[(int(path[0]), int(path[1]))][0]
+            port_no = self.port_to_switch[(int(path[0][1:]), int(path[1][1:]))][0]
         
         return port_no
 

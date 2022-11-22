@@ -47,10 +47,10 @@ class FattreeNet(Topo):
         self.nodes_dict = {}
         
         for switch in ft_topo.switches:
-            self.switches_dict[switch.id] = self.addSwitch(switch.id, ip=switch.ip, dpid=switch.dpid)
+            self.switches_dict[switch.id] = self.addSwitch(switch.id, ip=switch.ip)
             
         for server in ft_topo.servers:
-            self.servers_dict[server.id] = self.addHost(server.id, ip=server.ip, dpid=switch.dpid)
+            self.servers_dict[server.id] = self.addHost(server.id, ip=server.ip)
             
         self.nodes_dict = {**self.servers_dict, **self.switches_dict}
         
