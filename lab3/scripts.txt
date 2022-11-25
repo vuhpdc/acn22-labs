@@ -1,0 +1,6 @@
+pingall
+pingall
+N3 iperf -s > N3_iperf_server_op.log &
+N4 iperf -s > N4_iperf_server_op.log &
+N11 iperf -c 10.0.0.2 -t 20 > N11_iperf_client_op.log &
+N13 iperf -c 10.0.0.3 -t 20 > N13_iperf_client_op.log &
