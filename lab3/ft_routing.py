@@ -238,6 +238,7 @@ class FTRouter(app_manager.RyuApp):
         eth = pkt.get_protocols(ethernet.ethernet)[0]
         eth_pkt = pkt.get_protocol(ethernet.ethernet)
         arp_pkt = pkt.get_protocol(arp.arp)
+        ip_pkt = pkt.get_protocol(ipv4.ipv4)
         
         if eth.ethertype == ether_types.ETH_TYPE_LLDP:
             # ignore lldp packet
