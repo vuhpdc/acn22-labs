@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # Copyright 2013-present Barefoot Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,14 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
+
 
 import argparse
-from collections import OrderedDict
 import json
 import os
 import sys
 import tarfile
+from collections import OrderedDict
 
 parser = argparse.ArgumentParser(description='p4apprunner')
 parser.add_argument('--build-dir', help='Directory to build in.',
@@ -76,7 +76,7 @@ def read_manifest(manifest_file):
     elif 'default-target' in manifest:
         chosen_target = manifest['default-target']
     else:
-        chosen_target = manifest['targets'].keys()[0]
+        chosen_target = list(manifest['targets'].keys())[0]
 
     if chosen_target not in manifest['targets']:
         log_error('Target not found in manifest:', chosen_target)
@@ -188,7 +188,7 @@ def run_mininet(manifest):
     switch_args.append('--json "%s"' % output_file)
 
     program = '"%s/mininet/single_switch_mininet.py"' % sys.path[0]
-    return run_command('python2 %s %s' % (program, ' '.join(switch_args)))
+    return run_command('python3 %s %s' % (program, ' '.join(switch_args)))
 
 def run_multiswitch(manifest):
     output_file = run_compile_bmv2(manifest)
@@ -240,7 +240,7 @@ def run_multiswitch(manifest):
     script_args.append('--cli-message "%s"' % message_file)
 
     program = '"%s/mininet/multi_switch_mininet.py"' % sys.path[0]
-    return run_command('python2 %s %s' % (program, ' '.join(script_args)))
+    return run_command('python3 %s %s' % (program, ' '.join(script_args)))
 
 def run_stf(manifest):
     output_file = run_compile_bmv2(manifest)
@@ -257,14 +257,14 @@ def run_stf(manifest):
     stf_args.append(os.path.join(args.build_dir, stf_file))
 
     program = '"%s/stf/bmv2stf.py"' % sys.path[0]
-    rv = run_command('python2 %s %s' % (program, ' '.join(stf_args)))
+    rv = run_command('python3 %s %s' % (program, ' '.join(stf_args)))
     if rv != 0:
         sys.exit(1)
     return rv
 
 def run_custom(manifest):
     output_file = run_compile_bmv2(manifest)
-    python_path = 'PYTHONPATH=$PYTHONPATH:/scripts/mininet/'    
+    python_path = 'PYTHONPATH=$PYTHONPATH:/scripts/mininet/'
     script_args = []
     script_args.append('--behavioral-exe "%s"' % 'simple_switch')
     script_args.append('--json "%s"' % output_file)
@@ -273,7 +273,7 @@ def run_custom(manifest):
          log_error('No mininet program file provided.')
          sys.exit(1)
     program = manifest.target_config['program']
-    rv = run_command('%s python2 %s %s' % (python_path, program, ' '.join(script_args)))
+    rv = run_command('%s python3 %s %s' % (python_path, program, ' '.join(script_args)))
 
     if rv != 0:
         sys.exit(1)

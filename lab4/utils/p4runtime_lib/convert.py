@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import math
 import re
 import socket
-
-import math
 
 '''
 This package contains several helper functions for encoding to and decoding from byte strings:
@@ -29,10 +28,10 @@ def matchesMac(mac_addr_string):
     return mac_pattern.match(mac_addr_string) is not None
 
 def encodeMac(mac_addr_string):
-    return mac_addr_string.replace(':', '').decode('hex')
+    return bytes.fromhex(mac_addr_string.replace(':', ''))
 
 def decodeMac(encoded_mac_addr):
-    return ':'.join(s.encode('hex') for s in encoded_mac_addr)
+    return ':'.join(s.hex() for s in encoded_mac_addr)
 
 ip_pattern = re.compile('^(\d{1,3}\.){3}(\d{1,3})$')
 def matchesIPv4(ip_addr_string):
@@ -52,10 +51,10 @@ def encodeNum(number, bitwidth):
     num_str = '%x' % number
     if number >= 2 ** bitwidth:
         raise Exception("Number, %d, does not fit in %d bits" % (number, bitwidth))
-    return ('0' * (byte_len * 2 - len(num_str)) + num_str).decode('hex')
+    return bytes.fromhex('0' * (byte_len * 2 - len(num_str)) + num_str)
 
 def decodeNum(encoded_number):
-    return int(encoded_number.encode('hex'), 16)
+    return int(encoded_number.hex(), 16)
 
 def encode(x, bitwidth):
     'Tries to infer the type of `x` and encode it'
@@ -116,4 +115,4 @@ if __name__ == '__main__':
         enc_num = encodeNum(num, 8)
         raise Exception("expected exception")
     except Exception as e:
-        print e
+        print(e)

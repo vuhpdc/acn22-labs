@@ -13,15 +13,16 @@
 # limitations under the License.
 #
 
-from mininet.net import Mininet
-from mininet.node import Switch, Host
-from mininet.log import setLogLevel, info, error, debug
-from mininet.moduledeps import pathCheck
+import os
+import socket
+import tempfile
 from sys import exit
 from time import sleep
-import os
-import tempfile
-import socket
+
+from mininet.log import debug, error, info
+from mininet.moduledeps import pathCheck
+from mininet.node import Host, Switch
+
 
 class P4Host(Host):
     def config(self, **params):
@@ -39,16 +40,16 @@ class P4Host(Host):
         return r
 
     def describe(self, sw_addr=None, sw_mac=None):
-        print "**********"
-        print "Network configuration for: %s" % self.name
-        print "Default interface: %s\t%s\t%s" %(
+        print("**********")
+        print("Network configuration for: %s" % self.name)
+        print("Default interface: %s\t%s\t%s" %(
             self.defaultIntf().name,
             self.defaultIntf().IP(),
             self.defaultIntf().MAC()
-        )
+        ))
         if sw_addr is not None or sw_mac is not None:
-            print "Default route to switch: %s (%s)" % (sw_addr, sw_mac)
-        print "**********"
+            print("Default route to switch: %s (%s)" % (sw_addr, sw_mac))
+        print("**********")
 
 class P4Switch(Switch):
     """P4 virtual switch"""
@@ -113,7 +114,7 @@ class P4Switch(Switch):
         "Start up a new P4 switch"
         info("Starting P4 switch {}.\n".format(self.name))
         args = [self.sw_path]
-        for port, intf in self.intfs.items():
+        for port, intf in list(self.intfs.items()):
             if not intf.IP():
                 args.extend(['-i', str(port) + "@" + intf.name])
         if self.pcap_dump:

@@ -1,14 +1,15 @@
 from mininet.topo import Topo
 
+
 class AppTopo(Topo):
 
     def __init__(self, links, latencies={}, manifest=None, target=None,
                  log_dir="/tmp", bws={}, **opts):
         Topo.__init__(self, **opts)
 
-        nodes = sum(map(list, zip(*links)), [])
-        host_names = sorted(list(set(filter(lambda n: n[0] == 'h', nodes))))
-        sw_names = sorted(list(set(filter(lambda n: n[0] == 's', nodes))))
+        nodes = sum(list(map(list, list(zip(*links)))), [])
+        host_names = sorted(list(set([n for n in nodes if n[0] == 'h'])))
+        sw_names = sorted(list(set([n for n in nodes if n[0] == 's'])))
         sw_ports = dict([(sw, []) for sw in sw_names])
 
         self._host_links = {}
@@ -23,7 +24,7 @@ class AppTopo(Topo):
             self.addHost(host_name)
 
             self._host_links[host_name] = {}
-            host_links = filter(lambda l: l[0]==host_name or l[1]==host_name, links)
+            host_links = [l for l in links if l[0]==host_name or l[1]==host_name]
 
             sw_idx = 0
             for link in host_links:

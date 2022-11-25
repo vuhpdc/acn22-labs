@@ -2,6 +2,7 @@ import subprocess
 
 from shortest_path import ShortestPath
 
+
 class AppController:
 
     def __init__(self, manifest=None, target=None, topo=None, net=None, links=None):
@@ -25,7 +26,7 @@ class AppController:
         assert entries
         if sw: thrift_port = sw.thrift_port
 
-        print '\n'.join(entries)
+        print('\n'.join(entries))
         p = subprocess.Popen(['simple_switch_CLI', '--thrift-port', str(thrift_port)], stdin=subprocess.PIPE)
         p.communicate(input='\n'.join(entries))
 
@@ -33,8 +34,8 @@ class AppController:
         if sw: thrift_port = sw.thrift_port
         p = subprocess.Popen(['simple_switch_CLI', '--thrift-port', str(thrift_port)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate(input="register_read %s %d" % (register, idx))
-        reg_val = filter(lambda l: ' %s[%d]' % (register, idx) in l, stdout.split('\n'))[0].split('= ', 1)[1]
-        return long(reg_val)
+        reg_val = [l for l in stdout.split('\n') if ' %s[%d]' % (register, idx) in l][0].split('= ', 1)[1]
+        return int(reg_val)
 
     def start(self):
         shortestpath = ShortestPath(self.links)
@@ -54,7 +55,7 @@ class AppController:
 
         for host_name in self.topo._host_links:
             h = self.net.get(host_name)
-            for link in self.topo._host_links[host_name].values():
+            for link in list(self.topo._host_links[host_name].values()):
                 sw = link['sw']
                 #entries[sw].append('table_add send_frame rewrite_mac %d => %s' % (link['sw_port'], link['sw_mac']))
                 #entries[sw].append('table_add forward set_dmac %s => %s' % (link['host_ip'], link['host_mac']))
@@ -70,7 +71,7 @@ class AppController:
             h.setDefaultRoute("via %s" % link['sw_ip'])
 
         for h in self.net.hosts:
-            h_link = self.topo._host_links[h.name].values()[0]
+            h_link = list(self.topo._host_links[h.name].values())[0]
             for sw in self.net.switches:
                 path = shortestpath.get(sw.name, h.name, exclude=lambda n: n[0]=='h')
                 if not path: continue
@@ -85,20 +86,20 @@ class AppController:
                 path = shortestpath.get(h.name, h2.name, exclude=lambda n: n[0]=='h')
                 if not path: continue
                 h_link = self.topo._host_links[h.name][path[1]]
-                h2_link = self.topo._host_links[h2.name].values()[0]
+                h2_link = list(self.topo._host_links[h2.name].values())[0]
                 h.cmd('ip route add %s via %s' % (h2_link['host_ip'], h_link['sw_ip']))
 
 
-        print "**********"
-        print "Configuring entries in p4 tables"
+        print("**********")
+        print("Configuring entries in p4 tables")
         for sw_name in entries:
-            print
-            print "Configuring switch... %s" % sw_name
+            print()
+            print("Configuring switch... %s" % sw_name)
             sw = self.net.get(sw_name)
             if entries[sw_name]:
                 self.add_entries(sw=sw, entries=entries[sw_name])
-        print "Configuration complete."
-        print "**********"
+        print("Configuration complete.")
+        print("**********")
 
     def stop(self):
         pass

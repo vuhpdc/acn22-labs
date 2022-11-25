@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Copyright 2013-present Barefoot Networks, Inc.
 #
@@ -15,16 +15,15 @@
 # limitations under the License.
 #
 
-from mininet.net import Mininet
-from mininet.topo import Topo
-from mininet.log import setLogLevel, info
-from mininet.cli import CLI
-
-from p4_mininet import P4Switch, P4Host
-
 import argparse
 from subprocess import PIPE, Popen
 from time import sleep
+
+from mininet.cli import CLI
+from mininet.log import setLogLevel
+from mininet.net import Mininet
+from mininet.topo import Topo
+from p4_mininet import P4Host, P4Switch
 
 parser = argparse.ArgumentParser(description='Mininet demo')
 parser.add_argument('--behavioral-exe', help='Path to behavioral executable',
@@ -64,11 +63,11 @@ class SingleSwitchTopo(Topo):
                                 enable_debugger = False,
                                 pcap_dump = pcap_dump)
 
-        for h in xrange(n):
+        for h in range(n):
             host = self.addHost('h%d' % (h + 1),
                                 ip = "10.0.%d.10/24" % h,
                                 mac = '00:04:00:00:00:%02x' %h)
-            print "Adding host", str(host)
+            print("Adding host", str(host))
             self.addLink(host, switch)
 
 def main():
@@ -88,11 +87,11 @@ def main():
     net.start()
 
 
-    sw_mac = ["00:aa:bb:00:00:%02x" % n for n in xrange(num_hosts)]
+    sw_mac = ["00:aa:bb:00:00:%02x" % n for n in range(num_hosts)]
 
-    sw_addr = ["10.0.%d.1" % n for n in xrange(num_hosts)]
+    sw_addr = ["10.0.%d.1" % n for n in range(num_hosts)]
 
-    for n in xrange(num_hosts):
+    for n in range(num_hosts):
         h = net.get('h%d' % (n + 1))
         if mode == "l2":
             h.setDefaultRoute("dev %s" % h.defaultIntf().name)
@@ -100,30 +99,30 @@ def main():
             h.setARP(sw_addr[n], sw_mac[n])
             h.setDefaultRoute("dev %s via %s" % (h.defaultIntf().name, sw_addr[n]))
 
-    for n in xrange(num_hosts):
+    for n in range(num_hosts):
         h = net.get('h%d' % (n + 1))
         h.describe(sw_addr[n], sw_mac[n])
 
     sleep(1)
 
     if args.switch_config is not None:
-        print
-        print "Reading switch configuration script:", args.switch_config
+        print()
+        print("Reading switch configuration script:", args.switch_config)
         with open(args.switch_config, 'r') as config_file:
             switch_config = config_file.read()
 
-        print "Configuring switch..."
+        print("Configuring switch...")
         proc = Popen(["simple_switch_CLI"], stdin=PIPE)
         proc.communicate(input=switch_config)
 
-        print "Configuration complete."
-        print
+        print("Configuration complete.")
+        print()
 
-    print "Ready !"
+    print("Ready !")
 
     if args.cli_message is not None:
         with open(args.cli_message, 'r') as message_file:
-            print message_file.read()
+            print(message_file.read())
 
     CLI( net )
     net.stop()

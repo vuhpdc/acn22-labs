@@ -15,10 +15,11 @@
 import re
 
 import google.protobuf.text_format
-from p4.v1 import p4runtime_pb2
 from p4.config.v1 import p4info_pb2
+from p4.v1 import p4runtime_pb2
 
-from convert import encode
+from .convert import encode
+
 
 class P4InfoHelper(object):
     def __init__(self, p4_info_filepath):
@@ -101,17 +102,17 @@ class P4InfoHelper(object):
             exact = p4runtime_match.exact
             exact.value = encode(value, bitwidth)
         elif match_type == p4info_pb2.MatchField.LPM:
-            lpm = p4runtime_match.lpm
-            lpm.value = encode(value[0], bitwidth)
-            lpm.prefix_len = value[1]
+            lpm_entry = p4runtime_match.lpm
+            lpm_entry.value = encode(value[0], bitwidth)
+            lpm_entry.prefix_len = value[1]
         elif match_type == p4info_pb2.MatchField.TERNARY:
-            lpm = p4runtime_match.ternary
-            lpm.value = encode(value[0], bitwidth)
-            lpm.mask = encode(value[1], bitwidth)
+            ternary_entry = p4runtime_match.ternary
+            ternary_entry.value = encode(value[0], bitwidth)
+            ternary_entry.mask = encode(value[1], bitwidth)
         elif match_type == p4info_pb2.MatchField.RANGE:
-            lpm = p4runtime_match.range
-            lpm.low = encode(value[0], bitwidth)
-            lpm.high = encode(value[1], bitwidth)
+            range_entry = p4runtime_match.range
+            range_entry.low = encode(value[0], bitwidth)
+            range_entry.high = encode(value[1], bitwidth)
         else:
             raise Exception("Unsupported match type with type %r" % match_type)
         return p4runtime_match
@@ -173,7 +174,7 @@ class P4InfoHelper(object):
         if match_fields:
             table_entry.match.extend([
                 self.get_match_field_pb(table_name, match_field_name, value)
-                for match_field_name, value in match_fields.iteritems()
+                for match_field_name, value in match_fields.items()
             ])
 
         if default_action:
@@ -185,7 +186,7 @@ class P4InfoHelper(object):
             if action_params:
                 action.params.extend([
                     self.get_action_param_pb(action_name, field_name, value)
-                    for field_name, value in action_params.iteritems()
+                    for field_name, value in action_params.items()
                 ])
         return table_entry
 
@@ -198,3 +199,15 @@ class P4InfoHelper(object):
             r.instance = replica['instance']
             mc_entry.multicast_group_entry.replicas.extend([r])
         return mc_entry
+
+    def buildCloneSessionEntry(self, clone_session_id, replicas, packet_length_bytes=0):
+        clone_entry = p4runtime_pb2.PacketReplicationEngineEntry()
+        clone_entry.clone_session_entry.session_id = clone_session_id
+        clone_entry.clone_session_entry.packet_length_bytes = packet_length_bytes
+        clone_entry.clone_session_entry.class_of_service = 0  # PI currently supports only CoS=0 for clone session entry
+        for replica in replicas:
+            r = p4runtime_pb2.Replica()
+            r.egress_port = replica['egress_port']
+            r.instance = replica['instance']
+            clone_entry.clone_session_entry.replicas.extend([r])
+        return clone_entry

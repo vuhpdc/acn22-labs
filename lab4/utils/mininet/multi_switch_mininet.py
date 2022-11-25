@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Copyright 2013-present Barefoot Networks, Inc.
 #
@@ -15,25 +15,21 @@
 # limitations under the License.
 #
 
-import signal
-import os
-import sys
-import subprocess
 import argparse
-import json
 import importlib
+import json
+import os
 import re
+import sys
 from time import sleep
 
-from mininet.net import Mininet
-from mininet.topo import Topo
-from mininet.link import TCLink
-from mininet.log import setLogLevel, info
-from mininet.cli import CLI
-
-from p4_mininet import P4Switch, P4Host
-import apptopo
 import appcontroller
+import apptopo
+from mininet.cli import CLI
+from mininet.link import TCLink
+from mininet.log import setLogLevel
+from mininet.net import Mininet
+from p4_mininet import P4Host, P4Switch
 
 parser = argparse.ArgumentParser(description='Mininet demo')
 parser.add_argument('--behavioral-exe', help='Path to behavioral executable',
@@ -84,7 +80,7 @@ def main():
     conf = manifest['targets'][args.target]
     params = conf['parameters'] if 'parameters' in conf else {}
 
-    os.environ.update(dict(map(lambda (k,v): (k, str(v)), params.iteritems())))
+    os.environ.update(dict([(k_v[0], str(k_v[1])) for k_v in iter(params.items())]))
 
     def formatParams(s):
         for param in params:
@@ -124,7 +120,7 @@ def main():
             latencies[host_name+other] = host['latency']
 
     for l in latencies:
-        if isinstance(latencies[l], (str, unicode)):
+        if isinstance(latencies[l], str):
             latencies[l] = formatParams(latencies[l])
         else:
             latencies[l] = str(latencies[l]) + "ms"
@@ -160,7 +156,7 @@ def main():
 
     if args.cli_message is not None:
         with open(args.cli_message, 'r') as message_file:
-            print message_file.read()
+            print(message_file.read())
 
     if args.cli or ('cli' in conf and conf['cli']):
         CLI(net)
@@ -176,16 +172,16 @@ def main():
         return cmd
 
     def _wait_for_exit(p, host):
-        print p.communicate()
+        print(p.communicate())
         if p.returncode is None:
             p.wait()
-            print p.communicate()
+            print(p.communicate())
         return_codes.append(p.returncode)
         if host_name in stdout_files:
             stdout_files[host_name].flush()
             stdout_files[host_name].close()
 
-    print '\n'.join(map(lambda (k,v): "%s: %s"%(k,v), params.iteritems())) + '\n'
+    print('\n'.join(["%s: %s"%(k_v1[0],k_v1[1]) for k_v1 in iter(params.items())]) + '\n')
 
     for host_name in sorted(conf['hosts'].keys()):
         host = conf['hosts'][host_name]
@@ -195,7 +191,7 @@ def main():
         stdout_filename = os.path.join(args.log_dir, h.name + '.stdout')
         stdout_files[h.name] = open(stdout_filename, 'w')
         cmd = formatCmd(host['cmd'])
-        print h.name, cmd
+        print(h.name, cmd)
         p = h.popen(cmd, stdout=stdout_files[h.name], shell=True, preexec_fn=os.setpgrp)
         if 'startup_sleep' in host: sleep(host['startup_sleep'])
 
