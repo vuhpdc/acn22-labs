@@ -153,7 +153,7 @@ class FTRouter(app_manager.RyuApp):
                     ipv4_dst=(next_hop_ip, '255.255.255.0'),
                 )
                 actions = [parser.OFPActionOutput(outport)]
-                self.add_flow(datapath, 2, match, actions)
+                self.add_flow(datapath, 1, match, actions)
             for index, outport in enumerate(self.get_ports_to_upper_level(dpid)):
                 host_id = 2 + index
                 match = parser.OFPMatch(
@@ -161,7 +161,7 @@ class FTRouter(app_manager.RyuApp):
                     ipv4_dst=('0.0.0.{}'.format(host_id), '0.0.0.255'),
                 )
                 actions = [parser.OFPActionOutput(outport)]
-                self.add_flow(datapath, 1, match, actions)
+                self.add_flow(datapath, 2, match, actions)
                 
         # set the rules for all core switches
         for switch in self.topo_net.core_switches:
@@ -246,7 +246,7 @@ class FTRouter(app_manager.RyuApp):
         
         # print(self.switch_ip_to_dpid)
         if ip_pkt:
-            self.set_ft_forwarding()
+            print('Reached ip')
         
         if arp_pkt:
             # add rule when packet is coming to the edge switch from the host
