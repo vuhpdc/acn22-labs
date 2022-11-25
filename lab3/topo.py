@@ -104,7 +104,7 @@ class Fattree:
         for j in range(1, int(self.num_ports/2) + 1):
             for i in range(1, int(self.num_ports/2) + 1):
                 core_switch = Node('N{}'.format(
-                    self.counter), 'switch', self.get_core_switch_ip(j, i))
+                    self.counter), 'CS', self.get_core_switch_ip(j, i))
                 self.counter += 1
                 # core_switch.data = self.addSwitch(core_switch.id)
                 # self.core_switches.append(core_switch.data)
@@ -126,7 +126,7 @@ class Fattree:
 
         # add edge switches
         for edge_switch_number in range(0, int(self.num_ports/2)):
-            edge_switch = Node('N{}'.format(self.counter), 'switch', self.get_pod_switch_ip(
+            edge_switch = Node('N{}'.format(self.counter), 'ES', self.get_pod_switch_ip(
                 pod_number, edge_switch_number))
             self.counter += 1
             # edge_switch.data = self.addSwitch(edge_switch.id)
@@ -139,7 +139,7 @@ class Fattree:
         for edge_switch_index, edge_switch in enumerate(pod_edge_switches):
             for server_number in range(2, int(self.num_ports / 2) + 2):
                 # add server
-                server = Node('N{}'.format(self.counter), 'server', self.get_server_ip(
+                server = Node('N{}'.format(self.counter), 'H', self.get_server_ip(
                     pod_number, edge_switch_index, server_number))
                 self.counter += 1
                 # server.data = self.addHost(server.id)
@@ -151,7 +151,7 @@ class Fattree:
 
         # add aggregate switches
         for aggregate_switch_number in range(int(self.num_ports/2), self.num_ports):
-            aggregate_switch = Node('N{}'.format(self.counter), 'switch', self.get_pod_switch_ip(
+            aggregate_switch = Node('N{}'.format(self.counter), 'AS', self.get_pod_switch_ip(
                 pod_number, aggregate_switch_number))
             self.counter += 1
             # aggregate_switch.data = self.addSwitch(aggregate_switch.id)

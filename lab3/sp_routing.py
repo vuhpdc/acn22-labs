@@ -65,9 +65,9 @@ class SPRouter(app_manager.RyuApp):
         g1 = Graph(self.topo_net.servers, self.topo_net.switches)
         all_distance = g1.find_min_distance()
         for src_host in self.topo_net.servers:
-            if(src_host.type == 'server'):
+            if(src_host.type == 'H'):
                 for dst_host in self.topo_net.servers:
-                    if(dst_host.type == 'server' and src_host.id != dst_host.id):
+                    if(dst_host.type == 'H' and src_host.id != dst_host.id):
                         path = all_distance[src_host.id][dst_host.id][:-1]
                         self.server_to_server_sp[(src_host.ip, dst_host.ip)] = path
 
