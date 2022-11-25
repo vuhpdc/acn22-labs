@@ -56,7 +56,7 @@ class FattreeNet(Topo):
         
         self.edges_list = list(set([(edge.lnode.id, edge.rnode.id) for switch in ft_topo.switches for edge in switch.edges]))
         for edge in self.edges_list:
-            self.addLink(self.nodes_dict[edge[0]], self.nodes_dict[edge[1]])
+            self.addLink(self.nodes_dict[edge[0]], self.nodes_dict[edge[1]], bw=15, delay='5ms')
 
 def make_mininet_instance(graph_topo):
 
