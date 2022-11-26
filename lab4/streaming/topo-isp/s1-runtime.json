@@ -1,0 +1,15 @@
+{
+  "target": "bmv2",
+  "p4info": "build/streaming.p4.p4info.txt",
+  "bmv2_json": "build/streaming.json",
+  "table_entries": [
+    {
+      "table": "YOUR_TABLE_NAME",
+      "match": {
+        "YOUR_KEY_TO_MATCH": []
+      },
+      "action_name": "YOUR_ACTION_NAME",
+      "action_params": {}
+    }
+  ]
+}
