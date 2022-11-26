@@ -1,4 +1,4 @@
-# This code is part of the Advanced Computer Networks (ACN) course at VU 
+# This code is part of the Advanced Computer Networks (ACN) course at VU
 # Amsterdam.
 
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -31,39 +31,55 @@ from mininet.util import waitListening, custom
 
 import topo
 
+
 class FattreeNet(Topo):
-	"""
-	Create a fat-tree network in Mininet
-	"""
+    """
+    Create a fat-tree network in Mininet
+    """
 
-	def __init__(self, ft_topo):
-		
-		Topo.__init__(self)
+    def __init__(self, ft_topo):
 
-		# TODO: please complete the network generation logic here
+        Topo.__init__(self)
 
+        # TODO: please complete the network generation logic here
+        self.servers_dict = {}
+        self.switches_dict = {}
+        self.nodes_dict = {}
+        
+        for switch in ft_topo.switches:
+            self.switches_dict[switch.id] = self.addSwitch(switch.id, ip=switch.ip)
+            
+        for server in ft_topo.servers:
+            self.servers_dict[server.id] = self.addHost(server.id, ip=server.ip)
+            
+        self.nodes_dict = {**self.servers_dict, **self.switches_dict}
+        
+        self.edges_list = list(set([(edge.lnode.id, edge.rnode.id) for switch in ft_topo.switches for edge in switch.edges]))
+        for edge in self.edges_list:
+            self.addLink(self.nodes_dict[edge[0]], self.nodes_dict[edge[1]], bw=15, delay='5ms')
 
 def make_mininet_instance(graph_topo):
 
-	net_topo = FattreeNet(graph_topo)
-	net = Mininet(topo=net_topo, controller=None, autoSetMacs=True)
-	net.addController('c0', controller=RemoteController, ip="127.0.0.1", port=6653)
-	return net
+    net_topo = FattreeNet(graph_topo)
+    net = Mininet(topo=net_topo, controller=None, autoSetMacs=True)
+    net.addController('c0', controller=RemoteController,
+                      ip="127.0.0.1", port=6653)
+    return net
+
 
 def run(graph_topo):
-	
-	# Run the Mininet CLI with a given topology
-	lg.setLogLevel('info')
-	mininet.clean.cleanup()
-	net = make_mininet_instance(graph_topo)
 
-	info('*** Starting network ***\n')
-	net.start()
-	info('*** Running CLI ***\n')
-	CLI(net)
-	info('*** Stopping network ***\n')
-	net.stop()
+    # Run the Mininet CLI with a given topology
+    lg.setLogLevel('info')
+    mininet.clean.cleanup()
+    net = make_mininet_instance(graph_topo)
 
+    info('*** Starting network ***\n')
+    net.start()
+    info('*** Running CLI ***\n')
+    CLI(net)
+    info('*** Stopping network ***\n')
+    net.stop()
 
 
 ft_topo = topo.Fattree(4)
