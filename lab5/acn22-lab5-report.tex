@@ -1,0 +1,130 @@
+\documentclass[a4paper,11pt]{article} 
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{multirow} 
+\usepackage{booktabs} 
+\usepackage{graphicx} 
+\usepackage{setspace}
+\usepackage[skip=6pt plus1pt, indent=0pt]{parskip}
+
+\usepackage{float}
+\usepackage{fancyhdr}
+
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue
+}
+
+\usepackage[margin=1in]{geometry}
+
+\newcommand{\incode}[1]{
+\begin{tcolorbox}[colback=blue!5!white, boxrule=0mm, sharp corners]
+\texttt{#1}
+\end{tcolorbox}
+}
+
+\newcommand{\note}[1]{\textit{\textcolor{gray}{#1}}}
+
+\pagestyle{fancy} 
+\fancyhf{} 
+\lhead{Advanced Computer Networks 2022}
+\rhead{Lin Wang, George Karlos, Florian Gerlinghoff} 
+\cfoot{\thepage} 
+
+\begin{document}
+
+
+\thispagestyle{empty} 
+
+\begin{tabular}{@{}p{15.5cm}} 
+{\bf Advanced Computer Networks 2022} \\
+Vrije Universiteit Amsterdam  \\ Lin Wang, George Karlos, Florian Gerlinghoff\\
+\hline 
+\\
+\end{tabular} 
+
+\vspace*{0.3cm} 
+
+{\Large \bf Lab5: Switches Do Dream Of Machine Learning! (Report)} 
+
+\vspace*{0.3cm} 
+
+%============== Please do not change anything above ==============%
+
+% Please modify this part with your group information
+\begin{tcolorbox}[sharp corners, colback=blue!5!white]
+\begin{tabular}{@{}ll}
+\textbf{Group number:} & <your group number on Canvas> \\
+\textbf{Group members:} & <names of group members> \\
+\textbf{Slip days used:} & <number of slip days used> \\
+\textbf{Bonus claims:} & <what bonus?> \\
+\end{tabular}
+\end{tcolorbox}
+
+\vspace{0.4cm}
+
+\section{Basic In-Network Aggregation}
+
+% Start your writing here, feel free to include subsections to structure your report if needed
+% Please remove the note below in your submission
+\note{Describe your aggregation protocol. What do workers do, what does the switch do, etc?}
+
+\subsection{Ethernet Communication}
+
+% Start your writing here. Please remove the note below in your submission
+\note{Describe how your aggregation protocol works over Ethernet.}
+
+\subsection{UDP Communication}
+
+% Start your writing here. Please remove the note below in your submission
+\note{Describe how your aggregation protocol works over UDP Sockets.}
+
+\section{Basic Implementation}
+
+% Start your writing here, feel free to include subsections to structure your report if needed
+% Please remove the note below in your submission
+\note{Describe how your solution is implemented on both host and (especially) switch side. Please include discussions for both Ethernet and UDP implementations. A good place to start is the questions and hints from the Lab 5 document.}
+
+\subsection{How to Run It}
+
+% Start your writing here. Please remove the note below in your submission
+\note{If you made any changes on how the workers start, control plane usage, etc, please include them here; otherwise remove this section.}
+ 
+\section{Fault-Tolerant Aggregation Protocol}
+
+% Start your writing here, feel free to include subsections to structure your report if needed
+% Please remove the note below in your submission
+\note{Explain how you protocol from Section 1 is extended with fault-tolerance.}
+
+\section{Fault-Tolerant Implementation}
+
+% Start your writing here, feel free to include subsections to structure your report if needed
+% Please remove the note below in your submission
+\note{Explain how your fault-tolerant solution is implemented on both host and (especially) switch side. What challenges did you face and how did you solve them? A good place to start is the questions and hints from the Lab 5 document.}
+
+
+\subsection{How to Run It}
+
+% Start your writing here. Please remove the note below in your submission
+\note{If you made any changes on how the workers start, control plane usage, etc, please include them here; otherwise remove this section.}
+
+\section{Bonus: X}
+
+% Start your writing here, feel free to include subsections to structure your report if needed
+% Please remove the note below in your submission
+\note{Include a section for each of the bonuses you attempt, if any; otherwise remove this section.}
+
+
+\section{References}
+
+% Start your writing here, please remove the note below in your submission
+\note{Include your references if any; otherwise remove this section.}
+
+
+\end{document}
