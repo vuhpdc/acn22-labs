@@ -32,7 +32,7 @@ def AllReduce(soc, rank, data, result):
     pass
 
 def main():
-    rank = get_rank_or_exit()
+    rank = GetRankOrExit()
 
     s = None # TODO: Create a UDP socket. 
     # NOTE: This socket will be used for all AllReduce calls.
