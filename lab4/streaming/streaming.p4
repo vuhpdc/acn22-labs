@@ -2,6 +2,8 @@
 #include <core.p4>
 #include <v1model.p4>
 
+#define PKT_INSTANCE_TYPE_INGRESS_CLONE 1
+
 
 /*************************************************************************
 *********************** H E A D E R S  ***********************************
@@ -61,6 +63,7 @@ struct headers {
 
 struct metadata {
     /* empty */
+    routing_metadata_t routing;
 }
 
 /*************************************************************************
@@ -131,6 +134,12 @@ control MyIngress(inout headers hdr,
         hdr.ethernet.dstAddr = dstAddr;
         hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
     }
+
+    action clone_packet() {
+        const bit<32> REPORT_MIRROR_SESSION_ID = 500;
+        // Clone from ingress to egress pipeline
+        clone(CloneType.I2E, REPORT_MIRROR_SESSION_ID);
+    }
     
     table ipv4_lpm {
         key = {
@@ -146,6 +155,8 @@ control MyIngress(inout headers hdr,
     }
     
     apply {
+        clone_packet();
+
         ipv4_lpm.apply();
     }
 }
@@ -157,7 +168,28 @@ control MyIngress(inout headers hdr,
 control MyEgress(inout headers hdr,
                  inout metadata meta,
                  inout standard_metadata_t standard_metadata) {
-    apply {  
+
+     action clear_ttl() {
+        // TTL can be set to 0 only when the packet does not traverse further devices
+        // Otherwise compute it to be at least the #devices
+        hdr.ipv4.ttl = 0;
+    }
+
+
+    action change_ipv4_addr() {
+        // Simulate that the cloned packet came from h3 (10.0.3.3)
+        // 10.0.3.3 == 0x0a000303
+        // hdr.ipv4.srcAddr = 0x0a000303;
+        hdr.ipv4.srcAddr = 0x0a000404;
+    }
+
+    apply {
+        // In case the "instance type" is a cloned packet, modify its headers
+        // Otherwise, do not further process
+        if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
+            change_ipv4_addr();
+            clear_ttl();
+        }
     }
 }
 

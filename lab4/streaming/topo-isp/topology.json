@@ -27,24 +27,31 @@
     },
     "switches": {
         "s1": {
+            "cli_input" : "topo/clone-command.txt",
             "runtime_json": "topo-isp/s1-runtime.json"
         },
         "s2": {
+            "cli_input" : "topo/clone-command.txt",
             "runtime_json": "topo-isp/s2-runtime.json"
         },
         "s3": {
+            "cli_input" : "topo/clone-command.txt",
             "runtime_json": "topo-isp/s3-runtime.json"
         },
         "s4": {
+            "cli_input" : "topo/clone-command.txt",
             "runtime_json": "topo-isp/s4-runtime.json"
         },
         "s5": {
+            "cli_input" : "topo/clone-command.txt",
             "runtime_json": "topo-isp/s5-runtime.json"
         },
         "s6": {
+            "cli_input" : "topo/clone-command.txt",
             "runtime_json": "topo-isp/s6-runtime.json"
         },
         "s7": {
+            "cli_input" : "topo/clone-command.txt",
             "runtime_json": "topo-isp/s7-runtime.json"
         }
     },
