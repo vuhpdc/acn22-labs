@@ -4,7 +4,6 @@
 
 #define PKT_INSTANCE_TYPE_INGRESS_CLONE 1
 
-
 /*************************************************************************
 *********************** H E A D E R S  ***********************************
 *************************************************************************/
@@ -63,7 +62,6 @@ struct headers {
 
 struct metadata {
     /* empty */
-    routing_metadata_t routing;
 }
 
 /*************************************************************************
@@ -137,7 +135,6 @@ control MyIngress(inout headers hdr,
 
     action clone_packet() {
         const bit<32> REPORT_MIRROR_SESSION_ID = 500;
-        // Clone from ingress to egress pipeline
         clone(CloneType.I2E, REPORT_MIRROR_SESSION_ID);
     }
     
@@ -155,8 +152,11 @@ control MyIngress(inout headers hdr,
     }
     
     apply {
-        clone_packet();
-
+        if(standard_metadata.instance_type != PKT_INSTANCE_TYPE_INGRESS_CLONE) {
+            if(hdr.ipv4.srcAddr == 0x0a000101 && hdr.ipv4.dstAddr == 0x0a000707) {
+                clone_packet();
+            }
+        }
         ipv4_lpm.apply();
     }
 }
@@ -169,7 +169,7 @@ control MyEgress(inout headers hdr,
                  inout metadata meta,
                  inout standard_metadata_t standard_metadata) {
 
-     action clear_ttl() {
+    action clear_ttl() {
         // TTL can be set to 0 only when the packet does not traverse further devices
         // Otherwise compute it to be at least the #devices
         hdr.ipv4.ttl = 0;
@@ -177,10 +177,9 @@ control MyEgress(inout headers hdr,
 
 
     action change_ipv4_addr() {
-        // Simulate that the cloned packet came from h3 (10.0.3.3)
-        // 10.0.3.3 == 0x0a000303
-        // hdr.ipv4.srcAddr = 0x0a000303;
-        hdr.ipv4.srcAddr = 0x0a000404;
+        hdr.ipv4.dstAddr = 0x0a000303;
+        hdr.ethernet.dstAddr = 0x080000000300;
+        // standard_metadata.egress_spec = 3;
     }
 
     apply {
@@ -216,6 +215,22 @@ control MyComputeChecksum(inout headers hdr, inout metadata meta) {
                 hdr.ipv4.dstAddr
             },
             hdr.ipv4.hdrChecksum,
+            HashAlgorithm.csum16
+        );
+
+        update_checksum(
+            hdr.udp.isValid(),
+            { 
+                hdr.ipv4.srcAddr,
+                hdr.ipv4.dstAddr,
+                8w0,
+                hdr.ipv4.protocol,
+                hdr.udp.hdrLen,
+                hdr.udp.srcPort,
+                hdr.udp.dstPort,
+                hdr.udp.hdrLen
+            },
+            hdr.udp.checksum,
             HashAlgorithm.csum16
         );
     }
