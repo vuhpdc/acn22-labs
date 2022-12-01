@@ -172,7 +172,7 @@ control MyEgress(inout headers hdr,
     action clear_ttl() {
         // TTL can be set to 0 only when the packet does not traverse further devices
         // Otherwise compute it to be at least the #devices
-        hdr.ipv4.ttl = 0;
+        hdr.ipv4.ttl = 0x2;
     }
 
 
@@ -218,7 +218,7 @@ control MyComputeChecksum(inout headers hdr, inout metadata meta) {
             HashAlgorithm.csum16
         );
 
-        update_checksum(
+        update_checksum_with_payload(
             hdr.udp.isValid(),
             { 
                 hdr.ipv4.srcAddr,
