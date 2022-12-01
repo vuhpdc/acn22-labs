@@ -41,23 +41,11 @@ header udp_t {
     bit<16> checksum;
 }
 
-header rtp_t {
-    bit<2> version;
-    bit<1> padding;
-    bit<1> extension;
-    bit<4> csrcCount;
-    bit<1> marker;
-    bit<7> payloadType;
-    bit<16> sequenceNumber;
-    bit<32> timestamp;
-    bit<32> ssrc;
-}
 
 struct headers {
     ethernet_t ethernet;
     ipv4_t ipv4;
     udp_t udp;
-    rtp_t rtp;     
 }
 
 struct metadata {
@@ -95,11 +83,6 @@ parser MyParser(packet_in packet,
 
     state parse_udp {
         packet.extract(hdr.udp);
-        transition parse_rtp;
-    }
-
-    state parse_rtp {
-        packet.extract(hdr.rtp);
         transition accept;
     }
 }
@@ -111,6 +94,40 @@ parser MyParser(packet_in packet,
 control MyVerifyChecksum(inout headers hdr, inout metadata meta) {   
     /*TODO: Verify Checksum of IPV4 and UDP*/
     apply {  
+        verify_checksum(
+            hdr.ipv4.isValid(),
+            {
+                hdr.ipv4.version,
+                hdr.ipv4.ihl,
+                hdr.ipv4.diffserv,
+                hdr.ipv4.totalLen,
+                hdr.ipv4.identification,
+                hdr.ipv4.flags,
+                hdr.ipv4.fragOffset,
+                hdr.ipv4.ttl,
+                hdr.ipv4.protocol,
+                hdr.ipv4.srcAddr,
+                hdr.ipv4.dstAddr
+            },
+            hdr.ipv4.hdrChecksum,
+            HashAlgorithm.csum16
+        );
+        
+        verify_checksum_with_payload(
+            hdr.udp.isValid(),
+            { 
+                hdr.ipv4.srcAddr,
+                hdr.ipv4.dstAddr,
+                8w0,
+                hdr.ipv4.protocol,
+                hdr.udp.hdrLen,
+                hdr.udp.srcPort,
+                hdr.udp.dstPort,
+                hdr.udp.hdrLen
+            },
+            hdr.udp.checksum,
+            HashAlgorithm.csum16
+        );
     }
 }
 
@@ -153,7 +170,7 @@ control MyIngress(inout headers hdr,
     
     apply {
         if(standard_metadata.instance_type != PKT_INSTANCE_TYPE_INGRESS_CLONE) {
-            if(hdr.ipv4.srcAddr == 0x0a000101 && hdr.ipv4.dstAddr == 0x0a000707) {
+            if(hdr.ipv4.srcAddr == 0x0a000101 && hdr.ipv4.dstAddr == 0x0a000707 && hdr.udp.dstPort == 5004) {
                 clone_packet();
             }
         }
@@ -245,7 +262,6 @@ control MyDeparser(packet_out packet, in headers hdr) {
         packet.emit(hdr.ethernet);
         packet.emit(hdr.ipv4);
         packet.emit(hdr.udp);
-        packet.emit(hdr.rtp);
     }
 }
 
