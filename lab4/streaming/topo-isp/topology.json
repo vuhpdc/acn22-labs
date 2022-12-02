@@ -30,6 +30,7 @@
             "runtime_json": "topo-isp/s1-runtime.json"
         },
         "s2": {
+            "cli_input" : "topo-isp/clone-command.txt",
             "runtime_json": "topo-isp/s2-runtime.json"
         },
         "s3": {
