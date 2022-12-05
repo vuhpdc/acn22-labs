@@ -9,7 +9,9 @@ CHUNK_SIZE = None  # TODO: Define me
 class SwitchML(Packet):
     name = "SwitchMLPacket"
     fields_desc = [
-        # TODO: Implement me
+        #Chunk_Id
+        
+        #Vector_payload
     ]
 
 def AllReduce(iface, rank, data, result):
@@ -23,8 +25,17 @@ def AllReduce(iface, rank, data, result):
 
     This function is blocking, i.e. only returns with a result or error
     """
-    # TODO: Implement me
-    pass
+    iterations = len(data)/CHUNK_SIZE
+    for i in range(iterations):
+        start = i*CHUNK_SIZE
+        chunck_id = i
+        chunck = data[start:start+CHUNK_SIZE]
+        #Create frame
+        #Send frame
+        #Recv frame
+        #Parse it
+        #Append to result
+        
 
 def main():
     iface = 'eth0'
