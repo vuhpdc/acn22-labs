@@ -42,7 +42,7 @@ struct headers {
 
 struct metadata { 
   /* empty */ 
-  bit<1> first_last_flag; //Check if bit<32> is needed
+  bit<32> first_last_flag; //1 if last; 0 if first 
 }
 
 parser TheParser(packet_in packet,
